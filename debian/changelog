@@ -1,4 +1,4 @@
-pve-edk2-firmware (2.202002-1) pve; urgency=medium
+pve-edk2-firmware (2.20200229-1) pve; urgency=medium
 
   * update sources to upstream edk2-stable202002 tag
 
