@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20200531-1) bullseye; urgency=medium
+
+  * re-build for Debian Bullseye / Proxmox VE 7
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 13 May 2021 18:20:01 +0200
+
 pve-edk2-firmware (2.20200531-1) pve; urgency=medium
 
   * update sources to upstream edk2-stable202005 tag
@@ -70,4 +76,3 @@ pve-edk2-firmware (1.20180316-1) stable; urgency=medium
   * split from pve-qemu into separate package
 
  -- Proxmox Support Team <support@proxmox.com>  Fri, 16 Mar 2018 12:10:02 +0200
-
