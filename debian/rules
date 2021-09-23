@@ -54,6 +54,8 @@ build-ovmf: setup-build
 		    -a $(EDK2_HOST_ARCH) \
 		    -t $(EDK2_TOOLCHAIN) \
 		    -DSECURE_BOOT_ENABLE=FALSE \
+		    -DTPM_ENABLE=TRUE \
+		    -DTPM2_ENABLE=TRUE \
 		    -DFD_SIZE_2MB \
 		    -n $$(getconf _NPROCESSORS_ONLN)
 
@@ -75,6 +77,8 @@ build-qemu-efi: setup-build
 			-p ArmVirtPkg/ArmVirtQemu.dsc \
 			-DHTTP_BOOT_ENABLE=TRUE \
 			-DSECURE_BOOT_ENABLE=FALSE \
+			-DTPM_ENABLE=TRUE \
+			-DTPM2_ENABLE=TRUE \
 			-DINTEL_BDS \
 			-b RELEASE
 	dd if=/dev/zero of=Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)/FV/$(FW_NAME)_CODE.fd bs=1M seek=64 count=0
