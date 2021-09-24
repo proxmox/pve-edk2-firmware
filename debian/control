@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Proxmox Support Team <support@proxmox.com>
 Build-Depends: bc,
-               debhelper (>= 11),
+               debhelper (>= 12),
                gcc-aarch64-linux-gnu,
                iasl,
                nasm,
