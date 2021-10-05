@@ -52,6 +52,7 @@ build-ovmf: setup-build
 		    -a $(EDK2_HOST_ARCH) \
 		    -t $(EDK2_TOOLCHAIN) \
 		    -DSECURE_BOOT_ENABLE=FALSE \
+		    -DDNETWORK_TLS_ENABLE \
 		    -DTPM_ENABLE=TRUE \
 		    -DTPM2_ENABLE=TRUE \
 		    -DFD_SIZE_2MB \
@@ -74,6 +75,7 @@ build-qemu-efi: setup-build
 			-p ArmVirtPkg/ArmVirtQemu.dsc \
 			-DHTTP_BOOT_ENABLE=TRUE \
 			-DSECURE_BOOT_ENABLE=FALSE \
+			-DDNETWORK_TLS_ENABLE \
 			-DTPM_ENABLE=TRUE \
 			-DTPM2_ENABLE=TRUE \
 			-DINTEL_BDS \
