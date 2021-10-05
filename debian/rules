@@ -1,28 +1,36 @@
 #!/usr/bin/make -f
+
 SHELL=/bin/bash
 
-# this is a simplified version from the upstream package
-
-# Only used for creating our build tools.
 include /usr/share/dpkg/default.mk
 
-# for GCC5 and newer, LTO enabled
-EDK2_TOOLCHAIN=GCC5
-AARCH64_TOOLCHAIN=GCC5
+EDK2_TOOLCHAIN = GCC5
 export $(EDK2_TOOLCHAIN)_AARCH64_PREFIX=aarch64-linux-gnu-
 
 export PYTHON3_ENABLE=TRUE
-export PYTHON_COMMAND=python3
 
 ifeq ($(DEB_BUILD_ARCH),amd64)
 	EDK2_BUILD_ARCH=X64
 endif
+ifeq ($(DEB_BUILD_ARCH),i386)
+	EDK2_BUILD_ARCH=IA32
+endif
 ifeq ($(DEB_BUILD_ARCH),arm64)
 	EDK2_BUILD_ARCH=AARCH64
 endif
-ifeq ($(DEB_HOST_ARCH),amd64)
-	EDK2_HOST_ARCH=X64
-endif
+
+COMMON_FLAGS = -DNETWORK_HTTP_BOOT_ENABLE=TRUE -DNETWORK_TLS_ENABLE -DSECURE_BOOT_ENABLE=TRUE
+OVMF_COMMON_FLAGS = $(COMMON_FLAGS) -DTPM_ENABLE=TRUE
+OVMF_2M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_2MB
+OVMF_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
+OVMF_2M_SMM_FLAGS = $(OVMF_2M_FLAGS) -DSMM_REQUIRE=TRUE
+OVMF_4M_SMM_FLAGS = $(OVMF_4M_FLAGS) -DSMM_REQUIRE=TRUE
+OVMF32_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
+OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
+
+AAVMF_FLAGS  = $(COMMON_FLAGS) -DTPM2_ENABLE=TRUE -DTPM2_CONFIG_ENABLE=TRUE
+
+OVMF_VARS_GENERATOR = ./qemu-ovmf-secureboot-1-1-3/ovmf-vars-generator
 
 # Clear variables used internally by the edk2 build system
 undefine WORKSPACE
@@ -35,64 +43,188 @@ undefine CONF_PATH
 %:
 	dh $@
 
-override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf
+override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32
 
-setup-build:
+debian/setup-build-stamp:
 	cp -a debian/Logo.bmp MdeModulePkg/Logo/Logo.bmp
+	set -e; . ./edksetup.sh; \
 	make -C BaseTools ARCH=$(EDK2_BUILD_ARCH)
-	# call this when building too, it modifies the shell environment
-	. ./edksetup.sh
+	touch $@
 
-build-ovmf: EDK2_ARCH_DIR=X64
-build-ovmf: EDK2_HOST_ARCH=X64
-build-ovmf: setup-build
-	set -e; . ./edksetup.sh; \
-		OvmfPkg/build.sh \
-		    -b RELEASE  \
-		    -a $(EDK2_HOST_ARCH) \
-		    -t $(EDK2_TOOLCHAIN) \
-		    -DSECURE_BOOT_ENABLE=FALSE \
-		    -DDNETWORK_TLS_ENABLE \
-		    -DTPM_ENABLE=TRUE \
-		    -DTPM2_ENABLE=TRUE \
-		    -DFD_SIZE_2MB \
-		    -n $$(getconf _NPROCESSORS_ONLN)
+OVMF_BUILD_DIR = Build/OvmfX64/RELEASE_$(EDK2_TOOLCHAIN)
+OVMF3264_BUILD_DIR = Build/Ovmf3264/RELEASE_$(EDK2_TOOLCHAIN)
+OVMF_ENROLL = $(OVMF3264_BUILD_DIR)/X64/EnrollDefaultKeys.efi
+OVMF_SHELL =  $(OVMF3264_BUILD_DIR)/X64/Shell.efi
+OVMF_BINARIES = $(OVMF_ENROLL) $(OVMF_SHELL)
+OVMF_IMAGES := $(addprefix debian/ovmf-install/,OVMF_CODE.fd OVMF_CODE_4M.fd OVMF_CODE.secboot.fd OVMF_CODE_4M.secboot.fd OVMF_VARS.fd OVMF_VARS_4M.fd)
+OVMF_PREENROLLED_VARS := $(addprefix debian/ovmf-install/,OVMF_VARS.ms.fd OVMF_VARS_4M.ms.fd OVMF_VARS_4M.snakeoil.fd)
 
-build-qemu-efi: setup-build
-	mkdir -p ShellBinPkg/UefiShell/$(EDK2_ARCH_DIR) FatBinPkg/EnhancedFatDxe/$(EDK2_ARCH_DIR)
+OVMF32_BUILD_DIR = Build/OvmfIa32/RELEASE_$(EDK2_TOOLCHAIN)
+OVMF32_SHELL = $(OVMF32_BUILD_DIR)/IA32/Shell.efi
+OVMF32_BINARIES = $(OVMF32_SHELL)
+OVMF32_IMAGES  := $(addprefix debian/ovmf32-install/,OVMF32_CODE_4M.secboot.fd OVMF_VARS_4M.fd)
+
+QEMU_EFI_BUILD_DIR = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)
+AAVMF_BUILD_DIR = Build/ArmVirtQemu-AARCH64/RELEASE_$(EDK2_TOOLCHAIN)
+AAVMF_ENROLL    = $(AAVMF_BUILD_DIR)/AARCH64/EnrollDefaultKeys.efi
+AAVMF_SHELL     = $(AAVMF_BUILD_DIR)/AARCH64/Shell.efi
+AAVMF_BINARIES  = $(AAVMF_ENROLL) $(AAVMF_SHELL)
+AAVMF_CODE      = $(AAVMF_BUILD_DIR)/FV/AAVMF_CODE.fd
+AAVMF_VARS      = $(AAVMF_BUILD_DIR)/FV/AAVMF_VARS.fd
+AAVMF_IMAGES    = $(AAVMF_CODE) $(AAVMF_VARS)
+AAVMF_PREENROLLED_VARS = $(addprefix $(AAVMF_BUILD_DIR)/FV/,AAVMF_VARS.ms.fd AAVMF_VARS.snakeoil.fd)
+
+build-ovmf32: $(OVMF32_BINARIES) $(OVMF32_IMAGES)
+$(OVMF32_BINARIES) $(OVMF32_IMAGES): debian/setup-build-stamp
+	rm -rf debian/ovmf32-install
+	mkdir debian/ovmf32-install
 	set -e; . ./edksetup.sh; \
-		build -a $(EDK2_HOST_ARCH) -p ShellPkg/ShellPkg.dsc \
-			-b RELEASE -t $(EDK2_TOOLCHAIN); \
-		cp -a Build/Shell/RELEASE_$(EDK2_TOOLCHAIN)/$(EDK2_HOST_ARCH)/Shell_7C04A583-9E3E-4f1c-AD65-E05268D0B4D1.efi \
-			ShellBinPkg/UefiShell/$(EDK2_ARCH_DIR)/Shell.efi; \
-		build -a $(EDK2_HOST_ARCH) -p FatPkg/FatPkg.dsc \
-			-m FatPkg/EnhancedFatDxe/Fat.inf \
-			-t $(EDK2_TOOLCHAIN) -b RELEASE; \
-		cp -a Build/Fat/RELEASE_$(EDK2_TOOLCHAIN)/$(EDK2_HOST_ARCH)/Fat.efi \
-			FatBinPkg/EnhancedFatDxe/$(EDK2_ARCH_DIR)/Fat.efi; \
+		build -a IA32 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/OvmfPkgIa32.dsc \
+			$(OVMF32_4M_SMM_FLAGS) -b RELEASE
+	cp $(OVMF32_BUILD_DIR)/FV/OVMF_CODE.fd \
+		debian/ovmf32-install/OVMF32_CODE_4M.secboot.fd
+	cp $(OVMF32_BUILD_DIR)/FV/OVMF_VARS.fd \
+		debian/ovmf32-install/OVMF32_VARS_4M.fd
+
+build-ovmf: $(OVMF_BINARIES) $(OVMF_IMAGES) $(OVMF_PREENROLLED_VARS)
+$(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
+	rm -rf debian/ovmf-install
+	mkdir debian/ovmf-install
+	set -e; . ./edksetup.sh; \
+		build -a X64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/OvmfPkgX64.dsc \
+			$(OVMF_2M_FLAGS) -b RELEASE
+	cp $(OVMF_BUILD_DIR)/FV/OVMF_CODE.fd \
+		debian/ovmf-install/
+	cp $(OVMF_BUILD_DIR)/FV/OVMF_VARS.fd debian/ovmf-install/
+	rm -rf Build/OvmfX64
+	set -e; . ./edksetup.sh; \
+		build -a IA32 -a X64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/OvmfPkgIa32X64.dsc \
+			$(OVMF_4M_FLAGS) -b RELEASE
+	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
+		debian/ovmf-install/OVMF_CODE_4M.fd
+	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_VARS.fd \
+		debian/ovmf-install/OVMF_VARS_4M.fd
+	rm -rf Build/OvmfX64
+	set -e; . ./edksetup.sh; \
+		build -a X64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/OvmfPkgX64.dsc \
+			$(OVMF_2M_SMM_FLAGS) -b RELEASE
+	cp $(OVMF_BUILD_DIR)/FV/OVMF_CODE.fd \
+		debian/ovmf-install/OVMF_CODE.secboot.fd
+	rm -rf Build/OvmfX64
+	set -e; . ./edksetup.sh; \
+		build -a IA32 -a X64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/OvmfPkgIa32X64.dsc \
+			$(OVMF_4M_SMM_FLAGS) -b RELEASE
+	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
+		debian/ovmf-install/OVMF_CODE_4M.secboot.fd
+
+ifeq ($(call dpkg_vendor_derives_from_v1,ubuntu),yes)
+debian/PkKek-1-vendor.pem: debian/PkKek-1-Ubuntu.pem
+else
+debian/PkKek-1-vendor.pem: debian/PkKek-1-Debian.pem
+endif
+	ln -sf `basename $<` $@
+
+debian/oem-string-%: debian/PkKek-1-%.pem
+	tr -d '\n' < $< | \
+		sed -e 's/.*-----BEGIN CERTIFICATE-----/4e32566d-8e9e-4f52-81d3-5bb9715f9727:/' -e 's/-----END CERTIFICATE-----//' > $@
+
+%/AAVMF_VARS.ms.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/oem-string-vendor $(AAVMF_ENROLL) $(AAVMF_SHELL)
+	PYTHONPATH=$(CURDIR)/debian/python \
+	./debian/edk2-vars-generator.py \
+		-f AAVMF -e $(AAVMF_ENROLL) -s $(AAVMF_SHELL) \
+		-c $(AAVMF_CODE) -V $(AAVMF_VARS) \
+		-C `< debian/oem-string-vendor` -o $@
+
+%/AAVMF_VARS.snakeoil.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/oem-string-snakeoil $(AAVMF_ENROLL) $(AAVMF_SHELL)
+	PYTHONPATH=$(CURDIR)/debian/python \
+	./debian/edk2-vars-generator.py \
+		-f AAVMF -e $(AAVMF_ENROLL) -s $(AAVMF_SHELL) \
+		-c $(AAVMF_CODE) -V $(AAVMF_VARS) \
+		-C `< debian/oem-string-snakeoil` -o $@
+
+%/OVMF_VARS.ms.fd: %/OVMF_CODE.fd %/OVMF_VARS.fd debian/oem-string-vendor $(OVMF_ENROLL) $(OVMF_SHELL)
+	PYTHONPATH=$(CURDIR)/debian/python \
+	./debian/edk2-vars-generator.py \
+		-f OVMF -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
+		-c debian/ovmf-install/OVMF_CODE.fd \
+		-V debian/ovmf-install/OVMF_VARS.fd \
+		-C `< debian/oem-string-vendor` -o $@
+
+%/OVMF_VARS_4M.ms.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/oem-string-vendor $(OVMF_ENROLL) $(OVMF_SHELL)
+	PYTHONPATH=$(CURDIR)/debian/python \
+	./debian/edk2-vars-generator.py \
+		-f OVMF_4M -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
+		-c debian/ovmf-install/OVMF_CODE_4M.fd \
+		-V debian/ovmf-install/OVMF_VARS_4M.fd \
+		-C `< debian/oem-string-vendor` -o $@
+
+%/OVMF_VARS_4M.snakeoil.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/oem-string-snakeoil $(OVMF_ENROLL) $(OVMF_SHELL)
+	PYTHONPATH=$(CURDIR)/debian/python \
+	./debian/edk2-vars-generator.py \
+		-f OVMF_4M -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
+		-c debian/ovmf-install/OVMF_CODE_4M.fd \
+		-V debian/ovmf-install/OVMF_VARS_4M.fd \
+		-C `< debian/oem-string-snakeoil` -o $@
+
+ArmPkg/Library/GccLto/liblto-aarch64.a:	ArmPkg/Library/GccLto/liblto-aarch64.s
+	$($(EDK2_TOOLCHAIN)_AARCH64_PREFIX)gcc -c -fpic $< -o $@
+
+build-qemu-efi: debian/setup-build-stamp
+	set -e; . ./edksetup.sh; \
 		build -a $(EDK2_HOST_ARCH) \
 			-t $(EDK2_TOOLCHAIN) \
 			-p ArmVirtPkg/ArmVirtQemu.dsc \
-			-DHTTP_BOOT_ENABLE=TRUE \
-			-DSECURE_BOOT_ENABLE=FALSE \
-			-DDNETWORK_TLS_ENABLE \
-			-DTPM_ENABLE=TRUE \
-			-DTPM2_ENABLE=TRUE \
-			-DINTEL_BDS \
-			-b RELEASE
-	dd if=/dev/zero of=Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)/FV/$(FW_NAME)_CODE.fd bs=1M seek=64 count=0
-	dd if=Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)/FV/QEMU_EFI.fd of=Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)/FV/$(FW_NAME)_CODE.fd conv=notrunc
-	dd if=/dev/zero of=Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/RELEASE_$(EDK2_TOOLCHAIN)/FV/$(FW_NAME)_VARS.fd bs=1M seek=64 count=0
+			$(AAVMF_FLAGS) -b RELEASE
+	dd if=/dev/zero of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd bs=1M seek=64 count=0
+	dd if=$(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd conv=notrunc
+	dd if=/dev/zero of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd bs=1M seek=64 count=0
 
-build-qemu-efi-aarch64:
+build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_PREENROLLED_VARS)
+$(AAVMF_BINARIES): ArmPkg/Library/GccLto/liblto-aarch64.a
 	$(MAKE) -f debian/rules build-qemu-efi EDK2_ARCH_DIR=AArch64 EDK2_HOST_ARCH=AARCH64 FW_NAME=AAVMF
 
 override_dh_auto_clean:
-	set -e; \
-	if [ -d BaseTools/Source/C/bin ]; then \
-		. ./edksetup.sh; build clean; \
-		make -C BaseTools clean; \
-	fi
-	rm -rf Conf/.cache Build .pc-post
+	-. ./edksetup.sh; build clean
+	make -C BaseTools clean
 
-.PHONY: setup-build build-ovmf
+# Only embed code that is actually used; requested by the Ubuntu Security Team
+EMBEDDED_SUBMODULES += CryptoPkg/Library/OpensslLib/openssl
+EMBEDDED_SUBMODULES += ArmPkg/Library/ArmSoftFloatLib/berkeley-softfloat-3
+EMBEDDED_SUBMODULES += MdeModulePkg/Library/BrotliCustomDecompressLib/brotli
+get-orig-source:
+	# Should be executed on a checkout of the upstream master branch,
+	# with the debian/ directory manually copied in.
+	rm -rf edk2.tmp && git clone . edk2.tmp
+	# Embed submodules. Don't recurse - openssl will bring in MBs of
+	# stuff we don't need
+	set -e; cd edk2.tmp; \
+	for submodule in $(EMBEDDED_SUBMODULES); do \
+		git submodule update --init $$submodule; \
+	done
+	rm -rf edk2-$(DEB_VERSION_UPSTREAM) && \
+		mkdir edk2-$(DEB_VERSION_UPSTREAM)
+	cd edk2.tmp && git archive HEAD | \
+		tar xv -C ../edk2-$(DEB_VERSION_UPSTREAM)
+	cd edk2.tmp && git submodule foreach \
+		'git archive HEAD | tar xv -C $$toplevel/../edk2-$(DEB_VERSION_UPSTREAM)/$$sm_path'
+	ln -s ../debian edk2-$(DEB_VERSION_UPSTREAM)
+	# Remove known-binary files
+	cd edk2-$(DEB_VERSION_UPSTREAM) && python3 ./debian/remove-binaries.py
+	# Look for possible unknown binary files
+	cd edk2-$(DEB_VERSION_UPSTREAM) && python3 ./debian/find-binaries.py
+	rm edk2-$(DEB_VERSION_UPSTREAM)/debian
+	tar Jcvf ../edk2_$(DEB_VERSION_UPSTREAM).orig.tar.xz \
+		edk2-$(DEB_VERSION_UPSTREAM)
+	rm -rf edk2.tmp edk2-$(DEB_VERSION_UPSTREAM)
+
+.PHONY: build-ovmf build-ovmf32 build-qemu-efi build-qemu-efi-aarch64
