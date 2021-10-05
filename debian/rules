@@ -60,7 +60,6 @@ build-ovmf: setup-build
 		    -n $$(getconf _NPROCESSORS_ONLN)
 
 build-qemu-efi: setup-build
-	echo FOO "$${$(EDK2_TOOLCHAIN)_AARCH64_PREFIX}"
 	mkdir -p ShellBinPkg/UefiShell/$(EDK2_ARCH_DIR) FatBinPkg/EnhancedFatDxe/$(EDK2_ARCH_DIR)
 	set -e; . ./edksetup.sh; \
 		build -a $(EDK2_HOST_ARCH) -p ShellPkg/ShellPkg.dsc \
