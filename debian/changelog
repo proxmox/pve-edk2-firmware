@@ -1,3 +1,11 @@
+pve-edk2-firmware (3.20210831-1) bullseye; urgency=medium
+
+  * update sources to upstream edk2-stable202108 tag
+
+  * ship secureboot enabled code and EFI-vars images
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 05 Oct 2021 14:11:12 +0200
+
 pve-edk2-firmware (3.20200531-2) bullseye; urgency=medium
 
   * enable TPM support
