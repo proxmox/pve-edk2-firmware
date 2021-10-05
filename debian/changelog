@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20200531-2) bullseye; urgency=medium
+
+  * enable TPM support
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 05 Oct 2021 08:40:12 +0200
+
 pve-edk2-firmware (3.20200531-1) bullseye; urgency=medium
 
   * re-build for Debian Bullseye / Proxmox VE 7
