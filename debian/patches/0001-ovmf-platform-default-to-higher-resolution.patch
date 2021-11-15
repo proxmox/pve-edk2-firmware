@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Thomas Lamprecht <t.lamprecht@proxmox.com>
+Date: Mon, 15 Nov 2021 16:45:40 +0100
+Subject: [PATCH] ovmf platform: default to higher resolution
+
+Signed-off-by: Thomas Lamprecht <t.lamprecht@proxmox.com>
+---
+ OvmfPkg/OvmfPkgIa32.dsc    | 4 ++--
+ OvmfPkg/OvmfPkgIa32X64.dsc | 4 ++--
+ OvmfPkg/OvmfPkgX64.dsc     | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/OvmfPkg/OvmfPkgIa32.dsc b/OvmfPkg/OvmfPkgIa32.dsc
+index d1d92c97ba..0388f4621a 100644
+--- a/OvmfPkg/OvmfPkgIa32.dsc
++++ b/OvmfPkg/OvmfPkgIa32.dsc
+@@ -599,8 +599,8 @@
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
+ !endif
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|800
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|600
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1024
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|768
+   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiS3Enable|FALSE
+   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfHostBridgePciDevId|0
+   gUefiOvmfPkgTokenSpaceGuid.PcdPciIoBase|0x0
+diff --git a/OvmfPkg/OvmfPkgIa32X64.dsc b/OvmfPkg/OvmfPkgIa32X64.dsc
+index a467ab7090..6c215600f8 100644
+--- a/OvmfPkg/OvmfPkgIa32X64.dsc
++++ b/OvmfPkg/OvmfPkgIa32X64.dsc
+@@ -605,8 +605,8 @@
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
+ !endif
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|800
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|600
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1024
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|768
+   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiS3Enable|FALSE
+   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfHostBridgePciDevId|0
+   gUefiOvmfPkgTokenSpaceGuid.PcdPciIoBase|0x0
+diff --git a/OvmfPkg/OvmfPkgX64.dsc b/OvmfPkg/OvmfPkgX64.dsc
+index e56b83d95e..bcb33a06ca 100644
+--- a/OvmfPkg/OvmfPkgX64.dsc
++++ b/OvmfPkg/OvmfPkgX64.dsc
+@@ -605,8 +605,8 @@
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
+   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
+ !endif
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|800
+-  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|600
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution|1024
++  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution|768
+   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiS3Enable|FALSE
+   gUefiOvmfPkgTokenSpaceGuid.PcdOvmfHostBridgePciDevId|0
+   gUefiOvmfPkgTokenSpaceGuid.PcdPciIoBase|0x0
