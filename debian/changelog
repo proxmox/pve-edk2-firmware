@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20220526-1) bullseye; urgency=medium
+
+  * update sources to upstream edk2-stable202205 tag
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 19 Jul 2022 13:47:58 +0200
+
 pve-edk2-firmware (3.20210831-2) bullseye; urgency=medium
 
   * change default resolution to 1024x768
