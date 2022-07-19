@@ -56,3 +56,47 @@ PkKek-1-snakeoil.pem
   'snakeoil'.
 
  -- dann frazier <dannf@debian.org>, Thu, 30 Sep 2021 10:33:08 -0600
+
+The AAVMF_CODE*.fd files provide UEFI firmware for a QEMU guest that is
+intended to be read-only. The AAVMF_VARS*.fd files provide UEFI variable
+template images which are intended to be read-write, and therefore each
+guest should be given its own copy. Here's an overview of each of them:
+
+AAVMF_CODE.fd
+  Use this for booting guests in non-Secure Boot mode. While this image
+  technically supports Secure Boot, it does so without requiring SMM
+  support from QEMU, so it is less secure. Use the OVMF_VARS.fd template
+  with this.
+
+AAVMF_CODE.ms.fd
+  This is a symlink to AAVMF_CODE.fd. It is useful in the context of libvirt
+  because the included JSON firmware descriptors will tell libvirt to pair
+  AAVMF_VARS.ms.fd with it, which has Secure Boot pre-enabled.
+
+AAVMF_VARS.fd
+  This is an empty variable store template, which means it has no
+  built-in Secure Boot keys and Secure Boot is disabled. You can use
+  it with any AAVMF_CODE image, but keep in mind that if you want to
+  boot in Secure Boot mode, you will have to enable it manually.
+
+AAVMF_VARS.ms.fd
+  This template has distribution-specific PK and KEK1 keys, and
+  the default Microsoft keys in KEK/DB. It also has Secure Boot
+  already activated. Using this with OVMF_CODE.ms.fd will boot a
+  guest directly in Secure Boot mode.
+
+AAVMF_CODE.snakeoil.fd
+AAVMF_VARS.snakeoil.fd
+  This image is **for testing purposes only**. It includes an insecure
+  "snakeoil" key in PK, KEK & DB. The private key and cert are also
+  shipped in this package as well, so that testers can easily sign
+  binaries that will be considered valid.
+
+PkKek-1-snakeoil.key
+PkKek-1-snakeoil.pem
+  The private key and certificate for the snakeoil key. Use these
+  to sign binaries that can be verified by the key in the
+  OVMF_VARS.snakeoil.fd template. The password for the key is
+  'snakeoil'.
+
+ -- dann frazier <dannf@debian.org>, Fri,  4 Feb 2022 17:01:31 -0700
