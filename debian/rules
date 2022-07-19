@@ -34,8 +34,6 @@ OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
 
 AAVMF_FLAGS  = $(COMMON_FLAGS) -DTPM2_CONFIG_ENABLE=TRUE
 
-OVMF_VARS_GENERATOR = ./qemu-ovmf-secureboot-1-1-3/ovmf-vars-generator
-
 # Clear variables used internally by the edk2 build system
 undefine WORKSPACE
 undefine ECP_SOURCE
