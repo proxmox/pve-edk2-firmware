@@ -44,7 +44,7 @@ update_modules: submodule
 
 .PHONY: upload
 upload: ${DEB}
-	tar cf - ${DEB}|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist buster
+	tar cf - ${DEB}|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist bullseye
 
 .PHONY: distclean clean
 distclean: clean
