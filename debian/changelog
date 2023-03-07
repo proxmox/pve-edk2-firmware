@@ -1,3 +1,11 @@
+pve-edk2-firmware (3.20221111-1) bullseye; urgency=medium
+
+  * update sources to upstream edk2-stable202211 tag
+
+  * sync in some packaging updates from Debian
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 07 Mar 2023 10:04:21 +0100
+
 pve-edk2-firmware (3.20220526-1) bullseye; urgency=medium
 
   * update sources to upstream edk2-stable202205 tag
