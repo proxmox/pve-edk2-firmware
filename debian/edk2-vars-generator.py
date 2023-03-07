@@ -54,6 +54,11 @@ if __name__ == '__main__':
         required=True,
     )
     parser.add_argument(
+        "--no-default",
+        action="store_true",
+        help='Do not enroll the default keys, just the PK/KEK1 certificate',
+    )
+    parser.add_argument(
         "-V", "--vars-template",
         help='UEFI vars template',
         required=True,
@@ -122,7 +127,13 @@ if __name__ == '__main__':
     child.expect(['Shell> '])
     child.sendline('FS0:\r')
     child.expect(['FS0:\\\\> '])
-    child.sendline('EnrollDefaultKeys.efi\r')
+    enrollcmd = ['EnrollDefaultKeys.efi']
+    if args.no_default:
+        enrollcmd.append("--no-default")
+    child.sendline(f'{" ".join(enrollcmd)}\r')
+    child.expect(['FS0:\\\\> '])
+    # Clear the BootOrder. See #1015759
+    child.sendline('setvar BootOrder =\r')
     child.expect(['FS0:\\\\> '])
     child.sendline('reset -s\r')
     child.wait()
