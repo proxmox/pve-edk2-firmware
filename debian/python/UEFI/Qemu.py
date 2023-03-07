@@ -43,11 +43,10 @@ class QemuEfiFlashSize(enum.Enum):
 
 
 class QemuCommand:
-    # Based on the args used by ovmf-vars-generator
     Qemu_Common_Params = [
         '-no-user-config', '-nodefaults',
         '-m', '256',
-        '-smp', '2,sockets=2,cores=1,threads=1',
+        '-smp', '1,sockets=1,cores=1,threads=1',
         '-display', 'none',
         '-serial', 'stdio',
     ]

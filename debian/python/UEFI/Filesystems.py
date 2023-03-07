@@ -1,5 +1,5 @@
 #
-# Copyright 2019-2021 Canonical Ltd.
+# Copyright 2019-2022 Canonical Ltd.
 # Authors:
 # - dann frazier <dann.frazier@canonical.com>
 #
@@ -87,35 +87,15 @@ class EfiBootableIsoImage:
 
 
 class GrubShellBootableIsoImage(EfiBootableIsoImage):
-    def __init__(self, efi_arch, use_signed):
-        EfiArchToGrubArch = {
-            'X64': "x86_64",
-            'AA64': "arm64",
-        }
+    def __init__(self, efi_arch, shim_path, grub_path):
         efi_img = FatFsImage(64)
         efi_img.makedirs(os.path.join('EFI', 'BOOT'))
         removable_media_path = os.path.join(
             'EFI', 'BOOT', 'BOOT%s.EFI' % (efi_arch.upper())
         )
-        efi_ext = 'efi'
-        grub_subdir = "%s-efi" % EfiArchToGrubArch[efi_arch.upper()]
-        if use_signed:
-            efi_ext = "%s.signed" % (efi_ext)
-            grub_subdir = "%s-signed" % (grub_subdir)
-
-        shim_src = os.path.join(
-            os.path.sep, 'usr', 'lib', 'shim',
-            'shim%s.%s' % (efi_arch.lower(), efi_ext)
-        )
-        grub_src = os.path.join(
-            os.path.sep, 'usr', 'lib', 'grub',
-            '%s' % (grub_subdir),
-            "" if use_signed else "monolithic",
-            'grub%s.%s' % (efi_arch.lower(), efi_ext)
-        )
         grub_dest = os.path.join(
             'EFI', 'BOOT', 'GRUB%s.EFI' % (efi_arch.upper())
         )
-        efi_img.insert_file(shim_src, removable_media_path)
-        efi_img.insert_file(grub_src, grub_dest)
+        efi_img.insert_file(shim_path, removable_media_path)
+        efi_img.insert_file(grub_path, grub_dest)
         super().__init__(efi_img)

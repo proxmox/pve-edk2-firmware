@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2019-2021 Canonical Ltd.
+# Copyright 2019-2022 Canonical Ltd.
 # Authors:
 # - dann frazier <dann.frazier@canonical.com>
 #
@@ -18,12 +18,15 @@
 #
 
 import enum
+import os
 import pexpect
 import subprocess
 import sys
+import time
 import unittest
 
 from UEFI.Filesystems import GrubShellBootableIsoImage
+from UEFI.SignedBinary import SignedBinary
 from UEFI.Qemu import QemuEfiMachine, QemuEfiVariant, QemuEfiFlashSize
 from UEFI import Qemu
 
@@ -31,15 +34,56 @@ DPKG_ARCH = subprocess.check_output(
     ['dpkg', '--print-architecture']
 ).decode().rstrip()
 
+EfiArchToGrubArch = {
+    'X64': "x86_64",
+    'AA64': "arm64",
+}
+
+TEST_TIMEOUT = 120
+
+
+def get_local_grub_path(efi_arch, signed=False):
+    grub_subdir = "%s-efi" % EfiArchToGrubArch[efi_arch.upper()]
+    ext = "efi"
+    if signed:
+        grub_subdir = f"{grub_subdir}-signed"
+        ext = f"{ext}.signed"
+
+    grub_path = os.path.join(
+        os.path.sep, 'usr', 'lib', 'grub',
+        '%s' % (grub_subdir),
+        "" if signed else "monolithic",
+        'grub%s.%s' % (efi_arch.lower(), ext)
+    )
+    return grub_path
+
+
+def get_local_shim_path(efi_arch, signed=False):
+    ext = 'efi'
+    if signed:
+        ext = f"{ext}.signed"
+    shim_path = os.path.join(
+        os.path.sep, 'usr', 'lib', 'shim',
+        'shim%s.%s' % (efi_arch.lower(), ext)
+    )
+    return shim_path
+
 
 class BootToShellTest(unittest.TestCase):
     debug = True
 
+    def setUp(self):
+        self.startTime = time.time()
+
+    def tearDown(self):
+        t = time.time() - self.startTime
+        sys.stdout.write("%s runtime: %.3fs\n" % (self.id(), t))
+
     def run_cmd_check_shell(self, cmd):
-        child = pexpect.spawn(' '.join(cmd))
+        child = pexpect.spawn(' '.join(cmd), encoding='UTF-8')
 
         if self.debug:
-            child.logfile = sys.stdout.buffer
+            child.logfile = sys.stdout
         try:
             while True:
                 i = child.expect(
@@ -47,7 +91,7 @@ class BootToShellTest(unittest.TestCase):
                         'Press .* or any other key to continue',
                         'Shell> '
                     ],
-                    timeout=60,
+                    timeout=TEST_TIMEOUT,
                 )
                 if i == 0:
                     child.sendline('\x1b')
@@ -56,7 +100,9 @@ class BootToShellTest(unittest.TestCase):
                     child.sendline('reset -s\r')
                     continue
         except pexpect.EOF:
-            return
+            child.close()
+            if child.exitstatus != 0:
+                self.fail("ERROR: exit code %d\n" % (child.exitstatus))
         except pexpect.TIMEOUT as err:
             self.fail("%s\n" % (err))
 
@@ -65,10 +111,10 @@ class BootToShellTest(unittest.TestCase):
             PRE_EXEC = 1
             POST_EXEC = 2
 
-        child = pexpect.spawn(' '.join(cmd))
+        child = pexpect.spawn(' '.join(cmd), encoding='UTF-8')
 
         if self.debug:
-            child.logfile = sys.stdout.buffer
+            child.logfile = sys.stdout
         try:
             state = State.PRE_EXEC
             while True:
@@ -80,7 +126,7 @@ class BootToShellTest(unittest.TestCase):
                         'grub> ',
                         'Command Error Status: Access Denied',
                     ],
-                    timeout=60,
+                    timeout=TEST_TIMEOUT,
                 )
                 if i == 0:
                     child.sendline('\x1b')
@@ -102,10 +148,12 @@ class BootToShellTest(unittest.TestCase):
                 if i == 4:
                     verified = False
                     continue
+        except pexpect.EOF:
+            child.close()
+            if child.exitstatus != 0:
+                self.fail("ERROR: exit code %d\n" % (child.exitstatus))
         except pexpect.TIMEOUT as err:
             self.fail("%s\n" % (err))
-        except pexpect.EOF:
-            pass
         self.assertEqual(should_verify, verified)
 
     def test_aavmf(self):
@@ -113,12 +161,20 @@ class BootToShellTest(unittest.TestCase):
         self.run_cmd_check_shell(q.command)
 
     @unittest.skipUnless(DPKG_ARCH == 'arm64', "Requires grub-efi-arm64")
+    @unittest.skipUnless(
+        subprocess.run(
+            ['dpkg-vendor', '--derives-from', 'Ubuntu']
+        ).returncode == 0,
+        "Debian does not provide a signed shim for arm64, see #992073"
+    )
     def test_aavmf_ms_secure_boot_signed(self):
         q = Qemu.QemuCommand(
             QemuEfiMachine.AAVMF,
             variant=QemuEfiVariant.MS,
         )
-        iso = GrubShellBootableIsoImage('AA64', use_signed=True)
+        grub = get_local_grub_path('AA64', signed=True)
+        shim = get_local_shim_path('AA64', signed=True)
+        iso = GrubShellBootableIsoImage('AA64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'aa64', True)
 
@@ -128,7 +184,9 @@ class BootToShellTest(unittest.TestCase):
             QemuEfiMachine.AAVMF,
             variant=QemuEfiVariant.MS,
         )
-        iso = GrubShellBootableIsoImage('AA64', use_signed=False)
+        grub = get_local_grub_path('AA64', signed=False)
+        shim = get_local_shim_path('AA64', signed=False)
+        iso = GrubShellBootableIsoImage('AA64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'aa64', False)
 
@@ -178,7 +236,9 @@ class BootToShellTest(unittest.TestCase):
             variant=QemuEfiVariant.MS,
             flash_size=QemuEfiFlashSize.SIZE_2MB,
         )
-        iso = GrubShellBootableIsoImage('X64', use_signed=True)
+        grub = get_local_grub_path('X64', signed=True)
+        shim = get_local_shim_path('X64', signed=True)
+        iso = GrubShellBootableIsoImage('X64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'x64', True)
 
@@ -189,7 +249,9 @@ class BootToShellTest(unittest.TestCase):
             variant=QemuEfiVariant.MS,
             flash_size=QemuEfiFlashSize.SIZE_2MB,
         )
-        iso = GrubShellBootableIsoImage('X64', use_signed=False)
+        grub = get_local_grub_path('X64', signed=False)
+        shim = get_local_shim_path('X64', signed=False)
+        iso = GrubShellBootableIsoImage('X64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'x64', False)
 
@@ -230,7 +292,9 @@ class BootToShellTest(unittest.TestCase):
             variant=QemuEfiVariant.MS,
             flash_size=QemuEfiFlashSize.SIZE_4MB,
         )
-        iso = GrubShellBootableIsoImage('X64', use_signed=True)
+        grub = get_local_grub_path('X64', signed=True)
+        shim = get_local_shim_path('X64', signed=True)
+        iso = GrubShellBootableIsoImage('X64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'x64', True)
 
@@ -241,7 +305,44 @@ class BootToShellTest(unittest.TestCase):
             variant=QemuEfiVariant.MS,
             flash_size=QemuEfiFlashSize.SIZE_4MB,
         )
-        iso = GrubShellBootableIsoImage('X64', use_signed=False)
+        grub = get_local_grub_path('X64', signed=False)
+        shim = get_local_shim_path('X64', signed=False)
+        iso = GrubShellBootableIsoImage('X64', shim, grub)
+        q.add_disk(iso.path)
+        self.run_cmd_check_secure_boot(q.command, 'x64', False)
+
+    @unittest.skipUnless(DPKG_ARCH == 'amd64', "amd64-only")
+    def test_ovmf_snakeoil_secure_boot_signed(self):
+        q = Qemu.QemuCommand(
+            QemuEfiMachine.OVMF_Q35,
+            variant=QemuEfiVariant.SNAKEOIL,
+        )
+        shim = SignedBinary(
+            get_local_shim_path('X64', signed=False),
+            "/usr/share/ovmf/PkKek-1-snakeoil.key",
+            "/usr/share/ovmf/PkKek-1-snakeoil.pem",
+            "snakeoil",
+        )
+        grub = SignedBinary(
+            get_local_grub_path('X64', signed=False),
+            "/usr/share/ovmf/PkKek-1-snakeoil.key",
+            "/usr/share/ovmf/PkKek-1-snakeoil.pem",
+            "snakeoil",
+        )
+        iso = GrubShellBootableIsoImage('X64', shim.path, grub.path)
+        q.add_disk(iso.path)
+        self.run_cmd_check_secure_boot(q.command, 'x64', True)
+
+    @unittest.skipUnless(DPKG_ARCH == 'amd64', "amd64-only")
+    def test_ovmf_snakeoil_secure_boot_unsigned(self):
+        q = Qemu.QemuCommand(
+            QemuEfiMachine.OVMF_Q35,
+            variant=QemuEfiVariant.SNAKEOIL,
+            flash_size=QemuEfiFlashSize.DEFAULT,
+        )
+        grub = get_local_grub_path('X64', signed=False)
+        shim = get_local_shim_path('X64', signed=False)
+        iso = GrubShellBootableIsoImage('X64', shim, grub)
         q.add_disk(iso.path)
         self.run_cmd_check_secure_boot(q.command, 'x64', False)
 
