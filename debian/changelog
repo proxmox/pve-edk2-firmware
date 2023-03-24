@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20230228-1) bullseye; urgency=medium
+
+  * update sources to upstream edk2-stable202302 tag
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 24 Mar 2023 09:21:50 +0100
+
 pve-edk2-firmware (3.20221111-2) bullseye; urgency=medium
 
   * d/rules: re-enable PVSCSI support
