@@ -37,6 +37,12 @@ OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
 AAVMF_FLAGS  = $(COMMON_FLAGS) -DTPM2_CONFIG_ENABLE=TRUE
 AAVMF_FLAGS += -DCAVIUM_ERRATUM_27456=TRUE
 
+PCD_RELEASE_DATE = $(shell date -d@$(SOURCE_DATE_EPOCH) +%m/%d/%Y)
+
+PCD_OPTIONS  = --pcd PcdFirmwareVendor=L"EFI Development Kit II / OVMF\\0"
+PCD_OPTIONS += --pcd PcdFirmwareVersionString=L"$(DEB_VERSION_UPSTREAM_REVISION)\\0"
+PCD_OPTIONS += --pcd PcdFirmwareReleaseDateString=L"$(PCD_RELEASE_DATE)\\0"
+
 # Clear variables used internally by the edk2 build system
 undefine WORKSPACE
 undefine ECP_SOURCE
@@ -89,6 +95,7 @@ $(OVMF32_BINARIES) $(OVMF32_IMAGES): debian/setup-build-stamp
 		build -a IA32 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32.dsc \
+			$(PCD_OPTIONS) \
 			$(OVMF32_4M_SMM_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF32_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF32_INSTALL_DIR)/OVMF32_CODE_4M.secboot.fd
@@ -103,6 +110,7 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgX64.dsc \
+			$(PCD_OPTIONS) \
 			$(OVMF_2M_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_BUILD_DIR)/FV/OVMF.fd $(OVMF_INSTALL_DIR)/
@@ -112,6 +120,7 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a IA32 -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32X64.dsc \
+			$(PCD_OPTIONS) \
 			$(OVMF_4M_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_INSTALL_DIR)/OVMF_CODE_4M.fd
@@ -122,6 +131,7 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgX64.dsc \
+			$(PCD_OPTIONS) \
 			$(OVMF_2M_SMM_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_INSTALL_DIR)/OVMF_CODE.secboot.fd
@@ -130,6 +140,7 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a IA32 -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32X64.dsc \
+			$(PCD_OPTIONS) \
 			$(OVMF_4M_SMM_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_INSTALL_DIR)/OVMF_CODE_4M.secboot.fd
