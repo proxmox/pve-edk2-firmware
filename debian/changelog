@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20230228-2) bullseye; urgency=medium
+
+  * fix #4625: restore SMBIOS type 0 table defaults
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 04 Apr 2023 16:11:23 +0200
+
 pve-edk2-firmware (3.20230228-1) bullseye; urgency=medium
 
   * update sources to upstream edk2-stable202302 tag
