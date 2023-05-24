@@ -17,6 +17,7 @@ all: $(DEB)
 $(BUILDDIR): $(SRCDIR)/Readme.md
 	rm -rf $@ $@.tmp
 	cp -rpa $(SRCDIR) $@.tmp
+	rm -rf $@.tmp/ArmPkg/Library/GccLto/*.a
 	cp -a debian $@.tmp
 	echo "git clone git://git.proxmox.com/git/pve-edk2-firmware.git\\ngit checkout $(GITVERSION)" > $@.tmp/debian/SOURCE
 	mv $@.tmp $@
