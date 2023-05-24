@@ -15,10 +15,11 @@ all: $(DEB)
 	@echo $(DEB)
 
 $(BUILDDIR): $(SRCDIR)/Readme.md
-	rm -rf $(BUILDDIR)
-	cp -rpa $(SRCDIR) $(BUILDDIR)
-	cp -a debian $(BUILDDIR)
-	echo "git clone git://git.proxmox.com/git/pve-edk2-firmware.git\\ngit checkout $(GITVERSION)" > $(BUILDDIR)/debian/SOURCE
+	rm -rf $@ $@.tmp
+	cp -rpa $(SRCDIR) $@.tmp
+	cp -a debian $@.tmp
+	echo "git clone git://git.proxmox.com/git/pve-edk2-firmware.git\\ngit checkout $(GITVERSION)" > $@.tmp/debian/SOURCE
+	mv $@.tmp $@
 
 .PHONY: deb
 deb: $(DEB)
