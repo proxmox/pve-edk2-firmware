@@ -208,9 +208,14 @@ build-qemu-efi: debian/setup-build-stamp
 			-t $(EDK2_TOOLCHAIN) \
 			-p ArmVirtPkg/ArmVirtQemu.dsc \
 			$(AAVMF_FLAGS) -b $(BUILD_TYPE)
-	dd if=/dev/zero of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd bs=1M seek=64 count=0
-	dd if=$(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd conv=notrunc
-	dd if=/dev/zero of=$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd bs=1M seek=64 count=0
+	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd \
+		$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd
+	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_VARS.fd \
+		$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd
+	# QEMU expects 64MiB CODE and VARS files on ARM/AARCH64 architectures
+	# Truncate the firmware files to the expected size
+	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd
+	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd
 
 build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_IMAGES) $(AAVMF_PREENROLLED_VARS)
 $(AAVMF_BINARIES) $(AAVMF_IMAGES): ArmPkg/Library/GccLto/liblto-aarch64.a
