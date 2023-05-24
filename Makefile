@@ -4,6 +4,7 @@ PACKAGE=pve-edk2-firmware
 
 SRCDIR=edk2
 BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION_UPSTREAM)
+ORIG_SRC_TAR=$(PACKAGE)_$(DEB_VERSION_UPSTREAM).orig.tar.gz
 
 GITVERSION:=$(shell git rev-parse HEAD)
 
@@ -26,10 +27,16 @@ $(DEB): $(BUILDDIR)
 	lintian $(DEB)
 	@echo $(DEB)
 
+$(ORIG_SRC_TAR): $(BUILDDIR)
+	tar czf $(ORIG_SRC_TAR) --exclude="$(BUILDDIR)/debian" $(BUILDDIR)
+
+$(DSC): $(BUILDDIR) $(ORIG_SRC_TAR)
+	cd $(BUILDDIR); dpkg-buildpackage -S -uc -us -d
+
 .PHONY: dsc
 dsc: $(DSC)
-$(DSC): $(BUILDDIR)
-	cd $(BUILDDIR); dpkg-buildpackage -S -uc -us -d
+	$(MAKE) clean
+	$(MAKE) $(DSC)
 	lintian $(DSC)
 
 .PHONY: submodule
@@ -49,7 +56,7 @@ upload: $(DEB)
 .PHONY: distclean clean
 distclean: clean
 clean:
-	rm -rf *~ debian/*~ *.deb $(PACKAGE)-*/ *.tar.gz *.changes *.dsc *.buildinfo
+	rm -rf *.deb $(PACKAGE)-[0-9]*/ $(PACKAGE)*.tar* *.changes *.dsc *.buildinfo *.build
 
 .PHONY: dinstall
 dinstall: $(DEB)
