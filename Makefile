@@ -33,6 +33,9 @@ $(ORIG_SRC_TAR): $(BUILDDIR)
 $(DSC): $(BUILDDIR) $(ORIG_SRC_TAR)
 	cd $(BUILDDIR); dpkg-buildpackage -S -uc -us -d
 
+sbuild: $(DSC)
+	sbuild $(DSC)
+
 .PHONY: dsc
 dsc: $(DSC)
 	$(MAKE) clean
