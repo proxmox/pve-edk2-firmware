@@ -1,3 +1,14 @@
+pve-edk2-firmware (3.20230228-3) bookworm; urgency=medium
+
+  * re-build for Proxmox VE 8 / Debian Bookworm
+
+  * fix empty AAVMF_VARS.fd file
+
+  * fix #4696: Revert "ArmVirtPkg: make EFI_LOADER_DATA non-executable" until
+    GRUB fixes are more generally available.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 24 May 2023 10:53:40 +0200
+
 pve-edk2-firmware (3.20230228-2) bullseye; urgency=medium
 
   * fix #4625: restore SMBIOS type 0 table defaults
