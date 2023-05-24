@@ -53,8 +53,9 @@ update_modules: submodule
 	git submodule foreach 'git pull --ff-only origin master'
 
 .PHONY: upload
+upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
 upload: $(DEB)
-	tar cf - $(DEB)|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist bullseye
+	tar cf - $(DEB)|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist $(UPLOAD_DIST)
 
 .PHONY: distclean clean
 distclean: clean
