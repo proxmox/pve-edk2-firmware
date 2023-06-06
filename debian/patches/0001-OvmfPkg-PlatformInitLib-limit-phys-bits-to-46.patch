@@ -41,6 +41,3 @@ index 38cece9173..4d0522ce22 100644
      }
  
      if (!Page1GSupport && (PhysBits > 40)) {
--- 
-2.39.2
-
