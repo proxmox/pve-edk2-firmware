@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20230228-4~bpo11+1) bullseye; urgency=medium
+
+  * Rebuild for Proxmox VE 7.4
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 06 Jun 2023 16:25:11 +0200
+
 pve-edk2-firmware (3.20230228-4) bookworm; urgency=medium
 
   * limiting the phys-bits to 46 instead of 47 to work around older guest
