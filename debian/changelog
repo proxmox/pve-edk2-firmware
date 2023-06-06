@@ -1,3 +1,10 @@
+pve-edk2-firmware (3.20230228-4) bookworm; urgency=medium
+
+  * limiting the phys-bits to 46 instead of 47 to work around older guest
+    kernel bug, e.g., kernel 4.15 on Ubuntu 18.04.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 06 Jun 2023 16:06:21 +0200
+
 pve-edk2-firmware (3.20230228-3) bookworm; urgency=medium
 
   * re-build for Proxmox VE 8 / Debian Bookworm
