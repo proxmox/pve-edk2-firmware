@@ -24,9 +24,22 @@ XS-Build-Indep-Architecture: amd64
 
 Package: pve-edk2-firmware
 Architecture: all
-Depends: ${misc:Depends}
+Depends: pve-edk2-firmware-legacy, ${misc:Depends}
 Multi-Arch: foreign
 Description: edk2 based UEFI firmware modules for virtual machines
  Open Virtual Machine Firmware is a build of EDK II for 64-bit, 32-bit x86
  and 64-bit ARM virtual machines. It includes full support for UEFI, including
  Secure Boot, allowing use of UEFI in place of a traditional BIOS in your VM.
+
+Package: pve-edk2-firmware-legacy
+Architecture: all
+Depends: ${misc:Depends},
+Breaks: pve-edk2-firmware (<< 4.2023.08-1),
+Multi-Arch: foreign
+Description: edk2 based legacy 2MB UEFI firmware modules for virtual machines
+ Open Virtual Machine Firmware is a build of EDK II for 64-bit, 32-bit x86
+ virtual machines. It includes full support for UEFI, including Secure Boot,
+ allowing use of UEFI in place of a traditional BIOS in your VM.
+ This packages includes a static build of legacy images that got dropped from
+ upstream because the small size results in to many limitations, but Proxmox VE
+ still needs to provide backward compat for older VMs.

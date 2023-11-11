@@ -1,0 +1,4 @@
+usr/share/pve-edk2-firmware/legacy/OVMF_CODE.fd usr/share/pve-edk2-firmware/OVMF_CODE.fd
+usr/share/pve-edk2-firmware/legacy/OVMF_CODE.secboot.fd usr/share/pve-edk2-firmware/OVMF_CODE.secboot.fd
+usr/share/pve-edk2-firmware/legacy/OVMF_VARS.fd usr/share/pve-edk2-firmware/OVMF_VARS.fd
+usr/share/pve-edk2-firmware/legacy/OVMF_VARS.ms.fd usr/share/pve-edk2-firmware/OVMF_VARS.ms.fd

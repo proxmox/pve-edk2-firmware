@@ -40,6 +40,8 @@ OVMF_VARS.ms.fd
   These images are the same as their "4M" variants, but for use with guests
   using a 2MB flash device. 2MB flash is no longer considered sufficient for
   use with Secure Boot. This is provided only for backwards compatibility.
+  NOTE: As 2MB support was removed with 2023.08 release, we now ship them as
+  static builds from our last release before that (2023.02)
 
 OVMF_CODE_4M.snakeoil.fd
 OVMF_VARS_4M.snakeoil.fd
@@ -99,4 +101,4 @@ PkKek-1-snakeoil.pem
   OVMF_VARS.snakeoil.fd template. The password for the key is
   'snakeoil'.
 
- -- dann frazier <dannf@debian.org>, Fri,  4 Feb 2022 17:01:31 -0700
+ -- Proxmox Support Team <support@proxmox.com>, dann frazier <dannf@debian.org>, Fri,  4 Feb 2022 17:01:31 -0700
