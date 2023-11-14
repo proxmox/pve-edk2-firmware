@@ -7,6 +7,7 @@ include /usr/share/dpkg/default.mk
 BUILD_TYPE ?= RELEASE
 EDK2_TOOLCHAIN = GCC5
 export $(EDK2_TOOLCHAIN)_AARCH64_PREFIX=aarch64-linux-gnu-
+export $(EDK2_TOOLCHAIN)_RISCV64_PREFIX=riscv64-linux-gnu-
 
 export PYTHON3_ENABLE=TRUE
 
@@ -41,6 +42,7 @@ AAVMF_FLAGS += -DTPM2_ENABLE=TRUE
 AAVMF_FLAGS += -DTPM2_CONFIG_ENABLE=TRUE
 AAVMF_FLAGS += -DCAVIUM_ERRATUM_27456=TRUE
 
+RISCV64_FLAGS = $(COMMON_FLAGS)
 
 # Clear variables used internally by the edk2 build system
 undefine WORKSPACE
@@ -53,7 +55,7 @@ undefine CONF_PATH
 %:
 	dh $@
 
-override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32
+override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32 build-qemu-efi-riscv64
 
 debian/setup-build-stamp:
 	cp -a debian/Logo.bmp MdeModulePkg/Logo/Logo.bmp
@@ -85,6 +87,9 @@ AAVMF_CODE      = $(AAVMF_BUILD_DIR)/FV/AAVMF_CODE.fd
 AAVMF_VARS      = $(AAVMF_BUILD_DIR)/FV/AAVMF_VARS.fd
 AAVMF_IMAGES    = $(AAVMF_CODE) $(AAVMF_VARS)
 AAVMF_PREENROLLED_VARS = $(addprefix $(AAVMF_BUILD_DIR)/FV/,AAVMF_VARS.ms.fd AAVMF_VARS.snakeoil.fd)
+
+RISCV64_BUILD_DIR = Build/RiscVVirtQemu/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
+RISCV64_IMAGES    = $(addprefix $(RISCV64_BUILD_DIR)/FV/,RISCV_VIRT_CODE.fd RISCV_VIRT_VARS.fd)
 
 build-ovmf32: $(OVMF32_BINARIES) $(OVMF32_IMAGES)
 $(OVMF32_BINARIES) $(OVMF32_IMAGES): debian/setup-build-stamp
@@ -199,6 +204,16 @@ build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_IMAGES) $(AAVMF_PREENROLLED_VA
 $(AAVMF_BINARIES) $(AAVMF_IMAGES): ArmPkg/Library/GccLto/liblto-aarch64.a
 	$(MAKE) -f debian/rules build-qemu-efi EDK2_ARCH_DIR=AArch64 EDK2_HOST_ARCH=AARCH64 FW_NAME=AAVMF
 
+build-qemu-efi-riscv64:  $(RISCV64_IMAGES)
+$(RISCV64_IMAGES): debian/setup-build-stamp
+	set -e; . ./edksetup.sh; \
+		build -a RISCV64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/RiscVVirt/RiscVVirtQemu.dsc \
+			$(RISCV64_FLAGS) -b $(BUILD_TYPE)
+	truncate -s 32M $(RISCV64_BUILD_DIR)/FV/RISCV_VIRT_CODE.fd
+	truncate -s 32M $(RISCV64_BUILD_DIR)/FV/RISCV_VIRT_VARS.fd
+
 override_dh_auto_clean:
 	-. ./edksetup.sh; build clean
 	make -C BaseTools clean
@@ -234,4 +249,4 @@ get-orig-source:
 		edk2-$(DEB_VERSION_UPSTREAM)
 	rm -rf edk2.tmp edk2-$(DEB_VERSION_UPSTREAM)
 
-.PHONY: build-ovmf build-ovmf32 build-qemu-efi build-qemu-efi-aarch64
+.PHONY: build-ovmf build-ovmf32 build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64

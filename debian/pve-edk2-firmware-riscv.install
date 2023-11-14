@@ -1,0 +1,2 @@
+Build/RiscVVirtQemu/RELEASE_*GCC*/FV/RISCV_VIRT_CODE.fd /usr/share/pve-edk2-firmware
+Build/RiscVVirtQemu/RELEASE_*GCC*/FV/RISCV_VIRT_VARS.fd /usr/share/pve-edk2-firmware
