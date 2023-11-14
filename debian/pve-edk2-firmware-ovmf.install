@@ -2,6 +2,4 @@ debian/ovmf-install/OVMF_CODE*.fd	/usr/share/pve-edk2-firmware
 debian/ovmf-install/OVMF_VARS*.fd	/usr/share/pve-edk2-firmware
 debian/ovmf32-install/OVMF32_CODE*.fd		/usr/share/pve-edk2-firmware
 debian/ovmf32-install/OVMF32_VARS*.fd		/usr/share/pve-edk2-firmware
-Build/ArmVirtQemu-AARCH64/RELEASE_*GCC*/FV/QEMU_EFI.fd /usr/share/pve-edk2-firmware/aarch64
-Build/ArmVirtQemu-AARCH64/RELEASE_*GCC*/FV/AAVMF_*.fd /usr/share/pve-edk2-firmware
 debian/PkKek-1-snakeoil.*			/usr/share/pve-edk2-firmware

@@ -28,8 +28,18 @@ Depends: pve-edk2-firmware-legacy, ${misc:Depends}
 Multi-Arch: foreign
 Description: edk2 based UEFI firmware modules for virtual machines
  Open Virtual Machine Firmware is a build of EDK II for 64-bit, 32-bit x86
- and 64-bit ARM virtual machines. It includes full support for UEFI, including
- Secure Boot, allowing use of UEFI in place of a traditional BIOS in your VM.
+ virtual machines. It includes full support for UEFI, including Secure Boot,
+ allowing use of UEFI in place of a traditional BIOS in your VM.
+
+Package: pve-edk2-firmware-aarch64
+Architecture: all
+Depends: ${misc:Depends},
+Breaks: pve-edk2-firmware (<< 4.2023.08-1),
+Multi-Arch: foreign
+Description: edk2 based ARM64 UEFI firmware modules for virtual machines
+ A build of EDK II for 64-bit ARM virtual machines. It includes full support
+ for UEFI, including Secure Boot, allowing use of UEFI in place of a
+ traditional BIOS in your VM.
 
 Package: pve-edk2-firmware-legacy
 Architecture: all

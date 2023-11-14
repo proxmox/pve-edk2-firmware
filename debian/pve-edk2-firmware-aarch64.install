@@ -1,0 +1,2 @@
+Build/ArmVirtQemu-AARCH64/RELEASE_*GCC*/FV/QEMU_EFI.fd /usr/share/pve-edk2-firmware/aarch64
+Build/ArmVirtQemu-AARCH64/RELEASE_*GCC*/FV/AAVMF_*.fd /usr/share/pve-edk2-firmware
