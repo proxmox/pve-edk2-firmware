@@ -201,60 +201,6 @@ class BootToShellTest(unittest.TestCase):
         q = Qemu.QemuCommand(QemuEfiMachine.AAVMF32)
         self.run_cmd_check_shell(q.command)
 
-    def test_ovmf_pc(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_PC, flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        self.run_cmd_check_shell(q.command)
-
-    def test_ovmf_q35(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_Q35, flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        self.run_cmd_check_shell(q.command)
-
-    def test_ovmf_secboot(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_Q35,
-            variant=QemuEfiVariant.SECBOOT,
-            flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        self.run_cmd_check_shell(q.command)
-
-    def test_ovmf_ms(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_Q35,
-            variant=QemuEfiVariant.MS,
-            flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        self.run_cmd_check_shell(q.command)
-
-    @unittest.skipUnless(DPKG_ARCH == 'amd64', "amd64-only")
-    def test_ovmf_ms_secure_boot_signed(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_Q35,
-            variant=QemuEfiVariant.MS,
-            flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        grub = get_local_grub_path('X64', signed=True)
-        shim = get_local_shim_path('X64', signed=True)
-        iso = GrubShellBootableIsoImage('X64', shim, grub)
-        q.add_disk(iso.path)
-        self.run_cmd_check_secure_boot(q.command, 'x64', True)
-
-    @unittest.skipUnless(DPKG_ARCH == 'amd64', "amd64-only")
-    def test_ovmf_ms_secure_boot_unsigned(self):
-        q = Qemu.QemuCommand(
-            QemuEfiMachine.OVMF_Q35,
-            variant=QemuEfiVariant.MS,
-            flash_size=QemuEfiFlashSize.SIZE_2MB,
-        )
-        grub = get_local_grub_path('X64', signed=False)
-        shim = get_local_shim_path('X64', signed=False)
-        iso = GrubShellBootableIsoImage('X64', shim, grub)
-        q.add_disk(iso.path)
-        self.run_cmd_check_secure_boot(q.command, 'x64', False)
-
     def test_ovmf_4m(self):
         q = Qemu.QemuCommand(
             QemuEfiMachine.OVMF_Q35,
@@ -354,6 +300,9 @@ class BootToShellTest(unittest.TestCase):
         )
         self.run_cmd_check_shell(q.command)
 
+    def test_riscv64(self):
+        q = Qemu.QemuCommand(QemuEfiMachine.RISCV64)
+        self.run_cmd_check_shell(q.command)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

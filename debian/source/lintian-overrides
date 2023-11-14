@@ -1,4 +1,6 @@
 pve-edk2-firmware source: superfluous-file-pattern * [debian/copyright:*]
 pve-edk2-firmware source: source-is-missing [*/brotli/js/*.js]
-pve-edk2-firmware source: source-is-missing [CryptoPkg/Library/OpensslLib/openssl/krb5/*/*.html]
 pve-edk2-firmware source: source-is-missing [CryptoPkg/Library/OpensslLib/openssl/krb5/*/*.htm]
+pve-edk2-firmware source: source-is-missing [CryptoPkg/Library/OpensslLib/openssl/krb5/*/*.html]
+pve-edk2-firmware source: source-is-missing [MdePkg/Library/MipiSysTLib/mipisyst/external/pugixml/docs/manual.html]
+pve-edk2-firmware source: source-is-missing [MdePkg/Library/MipiSysTLib/mipisyst/external/pugixml/docs/quickstart.html]

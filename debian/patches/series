@@ -2,4 +2,4 @@ no-stack-protector-all-archs.diff
 brotlicompress-disable.diff
 x64-baseline-abi.patch
 Revert-ArmVirtPkg-make-EFI_LOADER_DATA-non-executabl.patch
-0001-OvmfPkg-PlatformInitLib-limit-phys-bits-to-46.patch
+ArmVirtPkg-disable-the-EFI_MEMORY_ATTRIBUTE-protocol.patch

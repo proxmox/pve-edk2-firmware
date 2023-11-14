@@ -20,26 +20,27 @@ ifeq ($(DEB_BUILD_ARCH),arm64)
 	EDK2_BUILD_ARCH=AARCH64
 endif
 
+PCD_RELEASE_DATE = $(shell date -d@$(SOURCE_DATE_EPOCH) "+%m/%d/%Y")
+PCD_FLAGS  = --pcd PcdFirmwareVendor=L"Proxmox distribution of EDK II\\0"
+PCD_FLAGS += --pcd PcdFirmwareVersionString=L"$(DEB_VERSION)\\0"
+PCD_FLAGS += --pcd PcdFirmwareReleaseDateString=L"$(PCD_RELEASE_DATE)\\0"
 COMMON_FLAGS  = -DNETWORK_HTTP_BOOT_ENABLE=TRUE
 COMMON_FLAGS += -DNETWORK_IP6_ENABLE=TRUE
 COMMON_FLAGS += -DNETWORK_TLS_ENABLE
 COMMON_FLAGS += -DSECURE_BOOT_ENABLE=TRUE
-COMMON_FLAGS += -DTPM2_ENABLE=TRUE
-COMMON_FLAGS += -DPVSCSI_ENABLE=TRUE
-OVMF_COMMON_FLAGS = $(COMMON_FLAGS)
+COMMON_FLAGS += $(PCD_FLAGS)
+OVMF_COMMON_FLAGS  = $(COMMON_FLAGS)
+OVMF_COMMON_FLAGS += -DTPM2_ENABLE=TRUE
 OVMF_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
 OVMF_4M_SMM_FLAGS = $(OVMF_4M_FLAGS) -DSMM_REQUIRE=TRUE
 OVMF32_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
 OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
 
-AAVMF_FLAGS  = $(COMMON_FLAGS) -DTPM2_CONFIG_ENABLE=TRUE
+AAVMF_FLAGS  = $(COMMON_FLAGS)
+AAVMF_FLAGS += -DTPM2_ENABLE=TRUE
+AAVMF_FLAGS += -DTPM2_CONFIG_ENABLE=TRUE
 AAVMF_FLAGS += -DCAVIUM_ERRATUM_27456=TRUE
 
-PCD_RELEASE_DATE = $(shell date -d@$(SOURCE_DATE_EPOCH) +%m/%d/%Y)
-
-PCD_OPTIONS  = --pcd PcdFirmwareVendor=L"EFI Development Kit II / OVMF\\0"
-PCD_OPTIONS += --pcd PcdFirmwareVersionString=L"$(DEB_VERSION_UPSTREAM_REVISION)\\0"
-PCD_OPTIONS += --pcd PcdFirmwareReleaseDateString=L"$(PCD_RELEASE_DATE)\\0"
 
 # Clear variables used internally by the edk2 build system
 undefine WORKSPACE
@@ -73,7 +74,7 @@ OVMF32_INSTALL_DIR = debian/ovmf32-install
 OVMF32_BUILD_DIR = Build/OvmfIa32/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
 OVMF32_SHELL = $(OVMF32_BUILD_DIR)/IA32/Shell.efi
 OVMF32_BINARIES = $(OVMF32_SHELL)
-OVMF32_IMAGES  := $(addprefix $(OVMF32_INSTALL_DIR)/,OVMF32_CODE_4M.secboot.fd OVMF_VARS_4M.fd)
+OVMF32_IMAGES  := $(addprefix $(OVMF32_INSTALL_DIR)/,OVMF32_CODE_4M.secboot.fd OVMF32_VARS_4M.fd)
 
 QEMU_EFI_BUILD_DIR = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
 AAVMF_BUILD_DIR = Build/ArmVirtQemu-AARCH64/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
@@ -93,7 +94,6 @@ $(OVMF32_BINARIES) $(OVMF32_IMAGES): debian/setup-build-stamp
 		build -a IA32 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32.dsc \
-			$(PCD_OPTIONS) \
 			$(OVMF32_4M_SMM_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF32_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF32_INSTALL_DIR)/OVMF32_CODE_4M.secboot.fd
@@ -109,7 +109,6 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a IA32 -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32X64.dsc \
-			$(PCD_OPTIONS) \
 			$(OVMF_4M_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_INSTALL_DIR)/OVMF_CODE_4M.fd
@@ -120,7 +119,6 @@ $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
 		build -a IA32 -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgIa32X64.dsc \
-			$(PCD_OPTIONS) \
 			$(OVMF_4M_SMM_FLAGS) -b $(BUILD_TYPE)
 	cp $(OVMF3264_BUILD_DIR)/FV/OVMF_CODE.fd \
 		$(OVMF_INSTALL_DIR)/OVMF_CODE_4M.secboot.fd
@@ -209,6 +207,7 @@ override_dh_auto_clean:
 EMBEDDED_SUBMODULES += CryptoPkg/Library/OpensslLib/openssl
 EMBEDDED_SUBMODULES += ArmPkg/Library/ArmSoftFloatLib/berkeley-softfloat-3
 EMBEDDED_SUBMODULES += MdeModulePkg/Library/BrotliCustomDecompressLib/brotli
+EMBEDDED_SUBMODULES += MdePkg/Library/MipiSysTLib/mipisyst
 get-orig-source:
 	# Should be executed on a checkout of the upstream master branch,
 	# with the debian/ directory manually copied in.

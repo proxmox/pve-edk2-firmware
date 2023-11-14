@@ -12,6 +12,7 @@ Depends:
  qemu-efi-aarch64,
  qemu-efi-arm,
  qemu-system-arm,
+ qemu-system-misc,
  qemu-system-x86,
  sbsigntool [amd64 arm64],
  shim-signed [amd64 arm64],

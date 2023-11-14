@@ -28,6 +28,7 @@ class QemuEfiMachine(enum.Enum):
     OVMF32 = enum.auto()
     AAVMF = enum.auto()
     AAVMF32 = enum.auto()
+    RISCV64 = enum.auto()
 
 
 class QemuEfiVariant(enum.Enum):
@@ -57,6 +58,9 @@ class QemuCommand:
     Aavmf_Common_Params = Qemu_Common_Params + [
         '-machine', 'virt', '-device', 'virtio-serial-device',
     ]
+    RiscV_Common_Params = Qemu_Common_Params + [
+        '-machine', 'virt', '-device', 'virtio-serial-device',
+    ]
     Machine_Base_Command = {
         QemuEfiMachine.AAVMF: [
             'qemu-system-aarch64', '-cpu', 'cortex-a57',
@@ -73,6 +77,9 @@ class QemuCommand:
         QemuEfiMachine.OVMF32: [
             'qemu-system-i386', '-machine', 'q35,accel=tcg',
         ] + Ovmf_Common_Params,
+        QemuEfiMachine.RISCV64: [
+            'qemu-system-riscv64',
+        ] + RiscV_Common_Params,
     }
 
     def _get_default_flash_paths(self, machine, variant, flash_size):
@@ -115,6 +122,13 @@ class QemuCommand:
         # Remaining possibilities are OVMF variants
         if machine == QemuEfiMachine.OVMF_PC:
             assert(variant is None)
+        if machine == QemuEfiMachine.RISCV64:
+            assert(variant is None)
+            assert(flash_size == QemuEfiFlashSize.DEFAULT)
+            return (
+                '/usr/share/qemu-efi-riscv64/RISCV_VIRT_CODE.fd',
+                '/usr/share/qemu-efi-riscv64/RISCV_VIRT_VARS.fd',
+            )
         if variant == QemuEfiVariant.SNAKEOIL:
             # We provide one size - you don't get to pick.
             assert(flash_size == QemuEfiFlashSize.DEFAULT)
@@ -163,18 +177,25 @@ class QemuCommand:
         be automatically cleaned up when the object is destroyed.
         '''
         def __init__(self, code_path, vars_template_path):
+            self.params = [
+                '-drive',
+                'file=%s,if=pflash,format=raw,unit=0,readonly=on' %
+                (code_path),
+            ]
+            if vars_template_path is None:
+                self.varfile_path = None
+                return
             with tempfile.NamedTemporaryFile(delete=False) as varfile:
                 self.varfile_path = varfile.name
                 with open(vars_template_path, 'rb') as template:
                     shutil.copyfileobj(template, varfile)
-                self.params = [
-                    '-drive',
-                    'file=%s,if=pflash,format=raw,unit=0,readonly=on' %
-                    (code_path),
-                    '-drive',
-                    'file=%s,if=pflash,format=raw,unit=1,readonly=off' %
-                    (varfile.name)
-                ]
+                    self.params = self.params + [
+                        '-drive',
+                        'file=%s,if=pflash,format=raw,unit=1,readonly=off' %
+                        (varfile.name)
+                    ]
 
         def __del__(self):
+            if self.varfile_path is None:
+                return
             os.unlink(self.varfile_path)
