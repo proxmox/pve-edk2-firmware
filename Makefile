@@ -6,11 +6,18 @@ SRCDIR=edk2
 BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION_UPSTREAM)
 ORIG_SRC_TAR=$(PACKAGE)_$(DEB_VERSION_UPSTREAM).orig.tar.gz
 
-DEB=$(PACKAGE)_$(DEB_VERSION)_all.deb
 DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 
-all: $(DEB)
-	@echo $(DEB)
+# transitional virtual package depending on the amd64 ones
+VIRTUAL_DEB = $(PACKAGE)_$(DEB_VERSION)_all.deb
+AMD64_DEB = $(PACKAGE)-legacy_$(DEB_VERSION)_all.deb $(PACKAGE)-ovmf_$(DEB_VERSION)_all.deb
+AARCH64_DEB = $(PACKAGE)-aarch64_$(DEB_VERSION)_all.deb
+RISCV_DEB = $(PACKAGE)-riscv_$(DEB_VERSION)_all.deb
+
+DEBS = $(VIRTUAL_DEB) $(AMD64_DEB) $(AARCH64_DEB) $(RISCV_DEB)
+
+all: $(DEBS)
+	@echo $(DEBS)
 
 $(BUILDDIR): $(SRCDIR)/Readme.md
 	rm -rf $@ $@.tmp
@@ -21,11 +28,12 @@ $(BUILDDIR): $(SRCDIR)/Readme.md
 	mv $@.tmp $@
 
 .PHONY: deb
-deb: $(DEB)
-$(DEB): $(BUILDDIR)
+deb: $(DEBS)
+$(AMD64_DEB) $(AARCH64_DEB) $(RISCV_DEB): $(VIRTUAL_DEB)
+$(VIRTUAL_DEB): $(BUILDDIR)
 	cd $(BUILDDIR); dpkg-buildpackage -b -uc -us
-	lintian $(DEB)
-	@echo $(DEB)
+	lintian $(DEBS)
+	@echo $(DEBS)
 
 $(ORIG_SRC_TAR): $(BUILDDIR)
 	tar czf $(ORIG_SRC_TAR) --exclude="$(BUILDDIR)/debian" $(BUILDDIR)
@@ -54,8 +62,8 @@ update_modules: submodule
 
 .PHONY: upload
 upload: UPLOAD_DIST ?= $(DEB_DISTRIBUTION)
-upload: $(DEB)
-	tar cf - $(DEB)|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist $(UPLOAD_DIST)
+upload: $(DEBS)
+	tar cf - $(DEBS)|ssh -X repoman@repo.proxmox.com -- upload --product pve --dist $(UPLOAD_DIST)
 
 .PHONY: distclean clean
 distclean: clean
@@ -63,5 +71,5 @@ clean:
 	rm -rf *.deb $(PACKAGE)-[0-9]*/ $(PACKAGE)*.tar* *.changes *.dsc *.buildinfo *.build
 
 .PHONY: dinstall
-dinstall: $(DEB)
-	dpkg -i $(DEB)
+dinstall: $(VIRTUAL_DEB) $(AMD64_DEB)
+	dpkg -i $^
