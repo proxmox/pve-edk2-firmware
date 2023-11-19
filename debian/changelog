@@ -1,3 +1,18 @@
+pve-edk2-firmware (4.2023.08-1) bookworm; urgency=medium
+
+  * update to edk2-stable202308
+
+  * switch to shorter and easier to read version format
+
+  * ship 2MB builds via legacy 2023.02 versions, as upstream dropped support
+    for them, to avoid breakage
+
+  * split out ARM64 build into separate package
+
+  * add RISC-V build as separate package
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 07 Nov 2023 16:19:26 +0100
+
 pve-edk2-firmware (3.20230228-4) bookworm; urgency=medium
 
   * limiting the phys-bits to 46 instead of 47 to work around older guest
