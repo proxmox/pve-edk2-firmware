@@ -6,8 +6,6 @@ SRCDIR=edk2
 BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION_UPSTREAM)
 ORIG_SRC_TAR=$(PACKAGE)_$(DEB_VERSION_UPSTREAM).orig.tar.gz
 
-GITVERSION:=$(shell git rev-parse HEAD)
-
 DEB=$(PACKAGE)_$(DEB_VERSION)_all.deb
 DSC=$(PACKAGE)_$(DEB_VERSION).dsc
 
@@ -19,7 +17,7 @@ $(BUILDDIR): $(SRCDIR)/Readme.md
 	cp -rpa $(SRCDIR) $@.tmp
 	rm -rf $@.tmp/ArmPkg/Library/GccLto/*.a
 	cp -a debian $@.tmp
-	echo "git clone git://git.proxmox.com/git/pve-edk2-firmware.git\\ngit checkout $(GITVERSION)" > $@.tmp/debian/SOURCE
+	echo "git clone git://git.proxmox.com/git/pve-edk2-firmware.git\\ngit checkout $(shell git rev-parse HEAD)" > $@.tmp/debian/SOURCE
 	mv $@.tmp $@
 
 .PHONY: deb
