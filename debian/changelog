@@ -1,3 +1,10 @@
+pve-edk2-firmware (4.2023.08-3) bookworm; urgency=medium
+
+  * fixes for "PixieFAIL" PXE vulnerabilities
+    - CVE-2023-45229 to CVE-2023-45237
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 17 Jan 2024 09:00:02 +0100
+
 pve-edk2-firmware (4.2023.08-2) bookworm; urgency=medium
 
   * enable deprecated PVSCSI support again for backwards compatibility
