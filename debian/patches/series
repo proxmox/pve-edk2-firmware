@@ -3,3 +3,4 @@ brotlicompress-disable.diff
 x64-baseline-abi.patch
 Revert-ArmVirtPkg-make-EFI_LOADER_DATA-non-executabl.patch
 0001-OvmfPkg-PlatformInitLib-limit-phys-bits-to-46.patch
+CVE-2023-45229_45237.patch
