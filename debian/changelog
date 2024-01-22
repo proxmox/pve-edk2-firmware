@@ -1,3 +1,10 @@
+pve-edk2-firmware (3.20230228-4~bpo11+2) bullseye; urgency=medium
+
+  * fixes for "PixieFAIL" PXE vulnerabilities
+    - CVE-2023-45229 to CVE-2023-45237
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 22 Jan 2024 14:09:01 +0100
+
 pve-edk2-firmware (3.20230228-4~bpo11+1) bullseye; urgency=medium
 
   * Rebuild for Proxmox VE 7.4
