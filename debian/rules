@@ -165,49 +165,32 @@ debian/PkKek-1-vendor.pem: debian/PkKek-1-Debian.pem
 endif
 	ln -sf `basename $<` $@
 
-debian/oem-string-%: debian/PkKek-1-%.pem
-	tr -d '\n' < $< | \
-		sed -e 's/.*-----BEGIN CERTIFICATE-----/4e32566d-8e9e-4f52-81d3-5bb9715f9727:/' -e 's/-----END CERTIFICATE-----//' > $@
+# Usage: $(call enroll_vendor,<var-template>,<output-file>,<uefi-arch>)
+enroll_vendor   = virt-fw-vars --input $(1) --output $(2) \
+                    --enroll-cert debian/PkKek-1-vendor.pem
+# Usage: $(call enroll_snakeoil,<var-template>,<output-file>)
+enroll_snakeoil = virt-fw-vars --input $(1) --output $(2) \
+                    --set-pk OvmfEnrollDefaultKeys \
+                             debian/PkKek-1-snakeoil.pem \
+                    --add-kek OvmfEnrollDefaultKeys \
+                             debian/PkKek-1-snakeoil.pem \
+                    --add-db OvmfEnrollDefaultKeys \
+                             debian/PkKek-1-snakeoil.pem
 
-%/AAVMF_VARS.ms.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/oem-string-vendor $(AAVMF_ENROLL) $(AAVMF_SHELL)
-	PYTHONPATH=$(CURDIR)/debian/python \
-	python3 ./debian/edk2-vars-generator.py \
-		-f AAVMF -e $(AAVMF_ENROLL) -s $(AAVMF_SHELL) \
-		-c $(AAVMF_CODE) -V $(AAVMF_VARS) \
-		-C `< debian/oem-string-vendor` -o $@
+%/AAVMF_VARS.ms.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-vendor.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
+	$(call enroll_vendor,$(AAVMF_VARS),$@,arm64)
 
-%/AAVMF_VARS.snakeoil.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/oem-string-snakeoil $(AAVMF_ENROLL) $(AAVMF_SHELL)
-	PYTHONPATH=$(CURDIR)/debian/python \
-	python3 ./debian/edk2-vars-generator.py \
-		-f AAVMF -e $(AAVMF_ENROLL) -s $(AAVMF_SHELL) \
-		-c $(AAVMF_CODE) -V $(AAVMF_VARS) \
-		--no-default \
-		-C `< debian/oem-string-snakeoil` -o $@
+%/AAVMF_VARS.snakeoil.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-snakeoil.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
+	$(call enroll_snakeoil,$(AAVMF_VARS),$@)
 
-%/OVMF_VARS.ms.fd: %/OVMF_CODE.fd %/OVMF_VARS.fd debian/oem-string-vendor $(OVMF_ENROLL) $(OVMF_SHELL)
-	PYTHONPATH=$(CURDIR)/debian/python \
-	python3 ./debian/edk2-vars-generator.py \
-		-f OVMF -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
-		-c $(OVMF_INSTALL_DIR)/OVMF_CODE.fd \
-		-V $(OVMF_INSTALL_DIR)/OVMF_VARS.fd \
-		-C `< debian/oem-string-vendor` -o $@
+%/OVMF_VARS.ms.fd: %/OVMF_CODE.secboot.fd %/OVMF_VARS.fd debian/PkKek-1-vendor.pem $(OVMF_ENROLL) $(OVMF_SHELL)
+	$(call enroll_vendor,$(OVMF_INSTALL_DIR)/OVMF_VARS.fd,$@,amd64)
 
-%/OVMF_VARS_4M.ms.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/oem-string-vendor $(OVMF_ENROLL) $(OVMF_SHELL)
-	PYTHONPATH=$(CURDIR)/debian/python \
-	python3 ./debian/edk2-vars-generator.py \
-		-f OVMF_4M -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
-		-c $(OVMF_INSTALL_DIR)/OVMF_CODE_4M.fd \
-		-V $(OVMF_INSTALL_DIR)/OVMF_VARS_4M.fd \
-		-C `< debian/oem-string-vendor` -o $@
+%/OVMF_VARS_4M.ms.fd: %/OVMF_CODE_4M.secboot.fd %/OVMF_VARS_4M.fd debian/PkKek-1-vendor.pem $(OVMF_ENROLL) $(OVMF_SHELL)
+	$(call enroll_vendor,$(OVMF_INSTALL_DIR)/OVMF_VARS_4M.fd,$@,amd64)
 
-%/OVMF_VARS_4M.snakeoil.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/oem-string-snakeoil $(OVMF_ENROLL) $(OVMF_SHELL)
-	PYTHONPATH=$(CURDIR)/debian/python \
-	python3 ./debian/edk2-vars-generator.py \
-		-f OVMF_4M -e $(OVMF_ENROLL) -s $(OVMF_SHELL) \
-		-c $(OVMF_INSTALL_DIR)/OVMF_CODE_4M.fd \
-		-V $(OVMF_INSTALL_DIR)/OVMF_VARS_4M.fd \
-		--no-default \
-		-C `< debian/oem-string-snakeoil` -o $@
+%/OVMF_VARS_4M.snakeoil.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/PkKek-1-snakeoil.pem $(OVMF_ENROLL) $(OVMF_SHELL)
+	$(call enroll_snakeoil,$(OVMF_INSTALL_DIR)/OVMF_VARS_4M.fd,$@)
 
 BaseTools/Bin/GccLto/liblto-aarch64.a:	BaseTools/Bin/GccLto/liblto-aarch64.s
 	$($(EDK2_TOOLCHAIN)_AARCH64_PREFIX)gcc -c -fpic $< -o $@
