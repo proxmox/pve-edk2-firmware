@@ -1,3 +1,9 @@
+pve-edk2-firmware (3.20230228-4~bpo11+3) bullseye; urgency=medium
+
+  * fix CVE-2023-48733: disable EFI shell in SB mode
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 15 Feb 2024 14:36:24 +0100
+
 pve-edk2-firmware (3.20230228-4~bpo11+2) bullseye; urgency=medium
 
   * fixes for "PixieFAIL" PXE vulnerabilities
