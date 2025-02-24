@@ -180,10 +180,10 @@ debian/oem-string-%: debian/PkKek-1-%.pem
 		--no-default \
 		-C `< debian/oem-string-snakeoil` -o $@
 
-ArmPkg/Library/GccLto/liblto-aarch64.a:	ArmPkg/Library/GccLto/liblto-aarch64.s
+BaseTools/Bin/GccLto/liblto-aarch64.a:	BaseTools/Bin/GccLto/liblto-aarch64.s
 	$($(EDK2_TOOLCHAIN)_AARCH64_PREFIX)gcc -c -fpic $< -o $@
 
-ArmPkg/Library/GccLto/liblto-arm.a: ArmPkg/Library/GccLto/liblto-arm.s
+BaseTools/Bin/GccLto/liblto-arm.a: BaseTools/Bin/GccLto/liblto-arm.s
 	$($(EDK2_TOOLCHAIN)_ARM_PREFIX)gcc -c -fpic $< -o $@
 
 build-qemu-efi: debian/setup-build-stamp
@@ -202,7 +202,7 @@ build-qemu-efi: debian/setup-build-stamp
 	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd
 
 build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_IMAGES) $(AAVMF_PREENROLLED_VARS)
-$(AAVMF_BINARIES) $(AAVMF_IMAGES): ArmPkg/Library/GccLto/liblto-aarch64.a
+$(AAVMF_BINARIES) $(AAVMF_IMAGES): BaseTools/Bin/GccLto/liblto-aarch64.a
 	$(MAKE) -f debian/rules build-qemu-efi EDK2_ARCH_DIR=AArch64 EDK2_HOST_ARCH=AARCH64 FW_NAME=AAVMF
 
 build-qemu-efi-riscv64:  $(RISCV64_IMAGES)

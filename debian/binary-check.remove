@@ -1,5 +1,5 @@
-ArmPkg/Library/GccLto/liblto-aarch64.a
-ArmPkg/Library/GccLto/liblto-arm.a
+BaseTools/Bin/GccLto/liblto-aarch64.a
+BaseTools/Bin/GccLto/liblto-arm.a
 BaseTools/Source/Python/Eot/EfiCompressor.pyd
 BaseTools/Source/Python/Eot/LzmaCompressor.pyd
 IntelFsp2Pkg/FspSecCore/Vtf0/Bin/ResetVec.ia32.raw
