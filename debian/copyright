@@ -8,18 +8,8 @@ Files: *
 Copyright: 2019, TianoCore and contributors.  All rights reserved.
 License: BSD-2-Clause-Patent
 
-Files: OvmfPkg/*
-Copyright: 2004-2019, Intel Corporation
-           2008-2009, Apple Inc.
-           2011, Andrei Warkentin <andreiw@motorola.com>
-           2011-2012, Bei Guan <gbtju85@gmail.com>
-           2012-2013, Red Hat, Inc
-           2013, ARM Ltd.
-License: BSD-2-Clause-Patent
-
 Files: BaseTools/Source/C/GenFw/elf*.h
        BaseTools/Source/Python/sitecustomize.py EmulatorPkg/*
-       MdeModulePkg/Core/DxeIplPeim/Arm/DxeLoadFunc.c
        MdeModulePkg/Library/PeiDebugPrintHobLib/PeiDebugPrintHobLib.c
        MdeModulePkg/Universal/Variable/RuntimeDxe/VariableDxe.c
        MdePkg/Include/* MdePkg/Library/*
@@ -31,41 +21,47 @@ Copyright: 1996-1998 John D. Polstra
            2013, Red Hat, Inc.
 License: BSD-2-Clause-Patent
 
+Files: MdePkg/Library/MipiSysTLib/mipisyst/*
+Copyright: 2018, MIPI Alliance, Inc.
+License: BSD-3-Clause
+
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/include/mipi_syst/api.h
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/include/mipi_syst/message.h
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/include/mipi_syst.h.in
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/src/mipi_syst_api.c
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/test/unit/mipi_syst_sbd_test.cpp
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
 Files: MdePkg/Library/MipiSysTLib/mipisyst/library/src/mipi_syst_writer.c
 Copyright: 2018-2023, MIPI Alliance, Inc.
-License: BSD-3-clause
+License: BSD-3-Clause
 
-Files: MdePkg/Library/MipiSysTLib/mipisyst/*
-Copyright: 2018, MIPI Alliance, Inc.
-License: BSD-3-clause
+Files: OvmfPkg/*
+Copyright: 2004-2019, Intel Corporation
+           2008-2009, Apple Inc.
+           2011, Andrei Warkentin <andreiw@motorola.com>
+           2011-2012, Bei Guan <gbtju85@gmail.com>
+           2012-2013, Red Hat, Inc
+           2013, ARM Ltd.
+License: BSD-2-Clause-Patent
 
 Files: ArmPkg/* ArmPlatformPkg/* BaseTools/Source/C/Common/*PeCoff*.c
        BaseTools/Source/C/GenFv/GenFvInternalLib.c
        BaseTools/Source/C/GenFw/Elf64Convert.c
-       BaseTools/Source/C/Include/AArch64/*
-       BaseTools/Source/C/Include/Arm/*
-       BaseTools/Source/C/Include/IndustryStandard/PeImage.h
-       BeagleBoardPkg/* EmbeddedPkg/* Omap35xxPkg/*
+       EmbeddedPkg/*
 Copyright: 2011-2013, ARM Limited
            2008-2010, Apple Inc.
            2004-2013, Intel Corporation
@@ -74,10 +70,9 @@ Copyright: 2011-2013, ARM Limited
            2003-2008 University of Illinois at Urbana-Champaign
 License: BSD-2-Clause-Patent
 
-Files: ShellPkg/Application/Shell/* ShellPkg/Library/*
-Copyright: 1999-2013, Intel Corporation
-           2013, Hewlett-Packard Development Company, L.P.
-License: BSD-2-Clause-Patent
+Files: SecurityPkg/DeviceSecurity/SpdmLib/libspdm/*
+Copyright: 2021-2024, Contributing Member(s) of Distributed Management Task Force, Inc.. All rights reserved.
+License: BSD-3-Clause
 
 Files: CryptoPkg/Library/OpensslLib/openssl/*
 Copyright: 1998-2019 The OpenSSL Project
@@ -87,6 +82,22 @@ License: OpenSSL
 Files: debian/tests/shell.py
 Copyright: 2019 Canonical Ltd.
 License: GPL-3
+
+License: Apache-2.0
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ .
+      http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+Comment:
+ On Debian systems, the complete text of the Apache License, Version 2
+ can be found in "/usr/share/common-licenses/Apache-2.0".
 
 License: BSD-2-Clause-Patent
  Redistribution and use in source and binary forms, with or without
@@ -137,7 +148,7 @@ License: BSD-2-Clause-Patent
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
 
-License: BSD-3-clause
+License: BSD-3-Clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  .
@@ -164,7 +175,7 @@ License: BSD-3-clause
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
 
-License: BSD-4-clause
+License: BSD-4-Clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -192,6 +203,23 @@ License: BSD-4-clause
  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  POSSIBILITY OF SUCH DAMAGE.
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this package; if not, see <https://www.gnu.org/licenses/>.
+Comment:
+ On Debian systems, the full text of the GNU General Public License
+ version 2 can be found in the file '/usr/share/common-licenses/GPL-2'.
 
 License: GPL-3
  This program is free software; you can redistribute it and/or modify
