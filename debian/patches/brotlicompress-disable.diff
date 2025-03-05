@@ -5,14 +5,12 @@ Description: Do not attempt to compile removed BrotliCompress source
  of the Ubuntu security team), so we also need to disable the build.
 Author: dann frazier <dannf@debian.org>
 Forwarded: not-needed
-Last-Update: 2019-06-25
+Last-Update: 2023-03-09
 ---
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
-Index: edk2/BaseTools/Source/C/GNUmakefile
-===================================================================
---- edk2.orig/BaseTools/Source/C/GNUmakefile
-+++ edk2/BaseTools/Source/C/GNUmakefile
-@@ -48,7 +48,6 @@ all: makerootdir subdirs
+--- a/BaseTools/Source/C/GNUmakefile
++++ b/BaseTools/Source/C/GNUmakefile
+@@ -51,7 +51,6 @@
  LIBRARIES = Common
  VFRAUTOGEN = VfrCompile/VfrLexer.h
  APPLICATIONS = \
