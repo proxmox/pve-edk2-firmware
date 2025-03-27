@@ -1,3 +1,13 @@
+pve-edk2-firmware (4.2025.02-2) bookworm; urgency=medium
+
+  * revert addition of EFI memory attributes protocol for x86_64 to avoid
+    boot-failures in some Linux based VMs because of some long-standing bugs
+    in the boot chain, i.e. the shim and GRUB where fixes are still being
+    rolled out or developed and probably need one or two years to be included
+    in a stable release of all modern/popular distros.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 27 Mar 2025 16:37:13 +0100
+
 pve-edk2-firmware (4.2025.02-1) bookworm; urgency=medium
 
   * update to edk2-stable202502
