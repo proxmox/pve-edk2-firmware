@@ -1,3 +1,11 @@
+pve-edk2-firmware (4.2025.02-3) bookworm; urgency=medium
+
+  * add OVMF build targeting Confidential Virtual Machines (CVM). For now this
+    disabled the Secure Management Mode (SMM), which is not supported for CVM
+    technologies like AMD SEV-ES and SEV-SNP.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 03 Apr 2025 18:16:47 +0200
+
 pve-edk2-firmware (4.2025.02-2) bookworm; urgency=medium
 
   * revert addition of EFI memory attributes protocol for x86_64 to avoid
