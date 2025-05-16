@@ -3,3 +3,5 @@ debian/legacy-2M-builds/OVMF_VARS.ms.fd
 debian/legacy-2M-builds/OVMF_VARS.fd
 debian/legacy-2M-builds/OVMF_CODE.secboot.fd
 debian/legacy-2M-builds/OVMF_CODE.fd
+debian/DBXUpdate-2025-02-24.arm64.bin
+debian/DBXUpdate-2025-10-16.amd64.bin

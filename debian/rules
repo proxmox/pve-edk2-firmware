@@ -167,7 +167,8 @@ endif
 
 # Usage: $(call enroll_vendor,<var-template>,<output-file>,<uefi-arch>)
 enroll_vendor   = virt-fw-vars --input $(1) --output $(2) \
-                    --enroll-cert debian/PkKek-1-vendor.pem
+                    --enroll-cert debian/PkKek-1-vendor.pem \
+                    --set-dbx ./debian/DBXUpdate-*.$(3).bin
 # Usage: $(call enroll_snakeoil,<var-template>,<output-file>)
 enroll_snakeoil = virt-fw-vars --input $(1) --output $(2) \
                     --set-pk OvmfEnrollDefaultKeys \
@@ -262,4 +263,18 @@ get-orig-source:
 		edk2-$(DEB_VERSION_UPSTREAM)
 	rm -rf edk2.tmp edk2-$(DEB_VERSION_UPSTREAM)
 
-.PHONY: build-ovmf build-ovmf32 build-ovmf-cvm build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64
+update-dbx:
+	rm -rf debian/DBXUpdate-*.bin
+	set -ex; \
+	tmpdir="$$(mktemp -d)"; \
+	git clone https://github.com/microsoft/secureboot_objects $$tmpdir; \
+	for arch in amd64 arm64; do \
+	  bin=PostSignedObjects/DBX/$$arch/DBXUpdate.bin; \
+	  date=$$(cd $$tmpdir && git log -1 --pretty=format:"%cs" $$bin); \
+	  cp $$tmpdir/$$bin debian/DBXUpdate-$${date}.$${arch}.bin; \
+	done; \
+	rm -rf "$$tmpdir"
+	sed -i -e '/DBXUpdate-/d' debian/source/include-binaries
+	ls debian/DBXUpdate-*.bin >> debian/source/include-binaries
+
+.PHONY: build-ovmf build-ovmf32 build-ovmf-cvm build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64 update-dbx
