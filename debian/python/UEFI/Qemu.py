@@ -39,7 +39,6 @@ class QemuEfiVariant(enum.Enum):
 
 class QemuEfiFlashSize(enum.Enum):
     DEFAULT = enum.auto
-    SIZE_2MB = enum.auto()
     SIZE_4MB = enum.auto()
 
 
@@ -132,7 +131,7 @@ class QemuCommand:
         if variant == QemuEfiVariant.SNAKEOIL:
             # We provide one size - you don't get to pick.
             assert(flash_size == QemuEfiFlashSize.DEFAULT)
-        size_ext = '' if flash_size == QemuEfiFlashSize.SIZE_2MB else '_4M'
+        size_ext = '_4M'
         return (
             f'/usr/share/OVMF/OVMF_CODE{size_ext}{code_ext}.fd',
             f'/usr/share/OVMF/OVMF_VARS{size_ext}{vars_ext}.fd'
@@ -154,10 +153,6 @@ class QemuCommand:
 
         self.pflash = self.PflashParams(code_path, vars_template_path)
         self.command = self.Machine_Base_Command[machine] + self.pflash.params
-        if variant in [QemuEfiVariant.MS, QemuEfiVariant.SECBOOT] and \
-           flash_size == QemuEfiFlashSize.SIZE_2MB:
-            # 2MB images have 64-bit PEI that does not support S3 w/ SMM
-            self.command.extend(['-global', 'ICH9-LPC.disable_s3=1'])
 
     def add_disk(self, path):
         self.command = self.command + [
