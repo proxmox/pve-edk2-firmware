@@ -1,3 +1,9 @@
+pve-edk2-firmware (4.2025.02-4) trixie; urgency=medium
+
+  * fix #6430: backport patch to fix split lock detection warnings.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 10 Jul 2025 15:04:51 +0200
+
 pve-edk2-firmware (4.2025.02-3) bookworm; urgency=medium
 
   * add OVMF build targeting Confidential Virtual Machines (CVM). For now this
