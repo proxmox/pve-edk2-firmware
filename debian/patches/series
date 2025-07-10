@@ -4,3 +4,4 @@ x64-baseline-abi.patch
 Revert-ArmVirtPkg-make-EFI_LOADER_DATA-non-executabl.patch
 ArmVirtPkg-disable-the-EFI_MEMORY_ATTRIBUTE-protocol.patch
 Revert-UefiCpuPkg-Produce-EFI-memory-attributes-prot.patch
+UefiCpuPkg-MpInitLib-Fix-split-lock-violation-from-M.patch
