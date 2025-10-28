@@ -38,6 +38,7 @@ OVMF_4M_SMM_FLAGS = $(OVMF_4M_FLAGS) -DSMM_REQUIRE=TRUE
 OVMF32_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
 OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
 OVMF_SEV_4M_FLAGS = $(OVMF_4M_FLAGS)
+OVMF_TDX_4M_FLAGS = $(OVMF_4M_FLAGS)
 
 AAVMF_FLAGS  = $(COMMON_FLAGS)
 AAVMF_FLAGS += -DTPM2_ENABLE=TRUE
@@ -57,7 +58,7 @@ undefine CONF_PATH
 %:
 	dh $@
 
-override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32 build-ovmf-sev build-qemu-efi-riscv64
+override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32 build-ovmf-sev build-ovmf-tdx build-qemu-efi-riscv64
 
 debian/setup-build-stamp:
 	cp -a debian/Logo.bmp MdeModulePkg/Logo/Logo.bmp
@@ -89,6 +90,13 @@ OVMF_SEV_BINARIES = $(OVMF_SEV_SHELL)
 OVMF_SEV_IMAGES  := $(addprefix $(OVMF_SEV_INSTALL_DIR)/,OVMF_SEV_CODE_4M.fd OVMF_SEV_VARS_4M.fd)
 # Note: OVMF_CVM_* are also available via symlinks. Can be removed by next major pve version (PVE 10).
 # 		See pve-edk2-firmware-ovmf.links
+
+OVMF_TDX_INSTALL_DIR = debian/ovmf-tdx-install
+OVMF_TDX_BUILD_ROOT = Build/IntelTdx
+OVMF_TDX_BUILD_DIR = $(OVMF_TDX_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
+OVMF_TDX_SHELL = $(OVMF_TDX_BUILD_DIR)/X64/Shell.efi
+OVMF_TDX_BINARIES = $(OVMF_TDX_SHELL)
+OVMF_TDX_IMAGES  := $(addprefix $(OVMF_TDX_INSTALL_DIR)/,OVMF_TDX_4M.fd)
 
 QEMU_EFI_BUILD_ROOT = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)
 QEMU_EFI_BUILD_DIR = $(QEMU_EFI_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
@@ -136,6 +144,18 @@ $(OVMF_SEV_BINARIES) $(OVMF_SEV_IMAGES): debian/setup-build-stamp
 		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_VARS_4M.fd
 	cp $(OVMF_SEV_BUILD_DIR)/FV/OVMF.fd \
 		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_4M.fd
+
+build-ovmf-tdx: $(OVMF_TDX_BINARIES) $(OVMF_TDX_IMAGES)
+$(OVMF_TDX_BINARIES) $(OVMF_TDX_IMAGES): debian/setup-build-stamp
+	rm -rf $(OVMF_TDX_INSTALL_DIR)
+	mkdir $(OVMF_TDX_INSTALL_DIR)
+	set -e; . ./edksetup.sh; \
+		build -a X64 \
+			-t $(EDK2_TOOLCHAIN) \
+			-p OvmfPkg/IntelTdx/IntelTdxX64.dsc \
+			$(OVMF_TDX_4M_FLAGS) -b $(BUILD_TYPE)
+	cp $(OVMF_TDX_BUILD_DIR)/FV/OVMF.fd \
+		$(OVMF_TDX_INSTALL_DIR)/OVMF_TDX_4M.fd
 
 build-ovmf: $(OVMF_BINARIES) $(OVMF_IMAGES) $(OVMF_PREENROLLED_VARS)
 $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
@@ -279,4 +299,4 @@ update-dbx:
 	sed -i -e '/DBXUpdate-/d' debian/source/include-binaries
 	ls debian/DBXUpdate-*.bin >> debian/source/include-binaries
 
-.PHONY: build-ovmf build-ovmf32 build-ovmf-sev build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64 update-dbx
+.PHONY: build-ovmf build-ovmf32 build-ovmf-sev build-ovmf-tdx build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64 update-dbx
