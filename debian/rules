@@ -37,7 +37,7 @@ OVMF_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
 OVMF_4M_SMM_FLAGS = $(OVMF_4M_FLAGS) -DSMM_REQUIRE=TRUE
 OVMF32_4M_FLAGS = $(OVMF_COMMON_FLAGS) -DFD_SIZE_4MB
 OVMF32_4M_SMM_FLAGS =  $(OVMF32_4M_FLAGS) -DSMM_REQUIRE=TRUE
-OVMF_CVM_4M_FLAGS = $(OVMF_4M_FLAGS)
+OVMF_SEV_4M_FLAGS = $(OVMF_4M_FLAGS)
 
 AAVMF_FLAGS  = $(COMMON_FLAGS)
 AAVMF_FLAGS += -DTPM2_ENABLE=TRUE
@@ -57,7 +57,7 @@ undefine CONF_PATH
 %:
 	dh $@
 
-override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32 build-ovmf-cvm build-qemu-efi-riscv64
+override_dh_auto_build: build-qemu-efi-aarch64 build-ovmf build-ovmf32 build-ovmf-sev build-qemu-efi-riscv64
 
 debian/setup-build-stamp:
 	cp -a debian/Logo.bmp MdeModulePkg/Logo/Logo.bmp
@@ -81,12 +81,14 @@ OVMF32_SHELL = $(OVMF32_BUILD_DIR)/IA32/Shell.efi
 OVMF32_BINARIES = $(OVMF32_SHELL)
 OVMF32_IMAGES  := $(addprefix $(OVMF32_INSTALL_DIR)/,OVMF32_CODE_4M.secboot.fd OVMF32_VARS_4M.fd)
 
-OVMF_CVM_INSTALL_DIR = debian/ovmf-cvm-install
-OVMF_CVM_BUILD_ROOT = Build/OvmfX64
-OVMF_CVM_BUILD_DIR = $(OVMF_CVM_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
-OVMF_CVM_SHELL = $(OVMF_CVM_BUILD_DIR)/X64/Shell.efi
-OVMF_CVM_BINARIES = $(OVMF_CVM_SHELL)
-OVMF_CVM_IMAGES  := $(addprefix $(OVMF_CVM_INSTALL_DIR)/,OVMF_CVM_CODE_4M.fd OVMF_CVM_VARS_4M.fd)
+OVMF_SEV_INSTALL_DIR = debian/ovmf-sev-install
+OVMF_SEV_BUILD_ROOT = Build/OvmfX64
+OVMF_SEV_BUILD_DIR = $(OVMF_SEV_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
+OVMF_SEV_SHELL = $(OVMF_SEV_BUILD_DIR)/X64/Shell.efi
+OVMF_SEV_BINARIES = $(OVMF_SEV_SHELL)
+OVMF_SEV_IMAGES  := $(addprefix $(OVMF_SEV_INSTALL_DIR)/,OVMF_SEV_CODE_4M.fd OVMF_SEV_VARS_4M.fd)
+# Note: OVMF_CVM_* are also available via symlinks. Can be removed by next major pve version (PVE 10).
+# 		See pve-edk2-firmware-ovmf.links
 
 QEMU_EFI_BUILD_ROOT = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)
 QEMU_EFI_BUILD_DIR = $(QEMU_EFI_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
@@ -118,22 +120,22 @@ $(OVMF32_BINARIES) $(OVMF32_IMAGES): debian/setup-build-stamp
 	cp $(OVMF32_BUILD_DIR)/FV/OVMF_VARS.fd \
 		$(OVMF32_INSTALL_DIR)/OVMF32_VARS_4M.fd
 
-build-ovmf-cvm: $(OVMF_CVM_BINARIES) $(OVMF_CVM_IMAGES)
-$(OVMF_CVM_BINARIES) $(OVMF_CVM_IMAGES): debian/setup-build-stamp
-	rm -rf $(OVMF_CVM_INSTALL_DIR)
-	mkdir $(OVMF_CVM_INSTALL_DIR)
+build-ovmf-sev: $(OVMF_SEV_BINARIES) $(OVMF_SEV_IMAGES)
+$(OVMF_SEV_BINARIES) $(OVMF_SEV_IMAGES): debian/setup-build-stamp
+	rm -rf $(OVMF_SEV_INSTALL_DIR)
+	mkdir $(OVMF_SEV_INSTALL_DIR)
 	set -e; . ./edksetup.sh; \
 		build -a X64 \
 			-t $(EDK2_TOOLCHAIN) \
 			-p OvmfPkg/OvmfPkgX64.dsc \
-			$(OVMF_CVM_4M_FLAGS) -b $(BUILD_TYPE)
+			$(OVMF_SEV_4M_FLAGS) -b $(BUILD_TYPE)
 			#-b $(BUILD_TYPE)
-	cp $(OVMF_CVM_BUILD_DIR)/FV/OVMF_CODE.fd \
-		$(OVMF_CVM_INSTALL_DIR)/OVMF_CVM_CODE_4M.fd
-	cp $(OVMF_CVM_BUILD_DIR)/FV/OVMF_VARS.fd \
-		$(OVMF_CVM_INSTALL_DIR)/OVMF_CVM_VARS_4M.fd
-	cp $(OVMF_CVM_BUILD_DIR)/FV/OVMF.fd \
-		$(OVMF_CVM_INSTALL_DIR)/OVMF_CVM_4M.fd
+	cp $(OVMF_SEV_BUILD_DIR)/FV/OVMF_CODE.fd \
+		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_CODE_4M.fd
+	cp $(OVMF_SEV_BUILD_DIR)/FV/OVMF_VARS.fd \
+		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_VARS_4M.fd
+	cp $(OVMF_SEV_BUILD_DIR)/FV/OVMF.fd \
+		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_4M.fd
 
 build-ovmf: $(OVMF_BINARIES) $(OVMF_IMAGES) $(OVMF_PREENROLLED_VARS)
 $(OVMF_BINARIES) $(OVMF_IMAGES): debian/setup-build-stamp
@@ -277,4 +279,4 @@ update-dbx:
 	sed -i -e '/DBXUpdate-/d' debian/source/include-binaries
 	ls debian/DBXUpdate-*.bin >> debian/source/include-binaries
 
-.PHONY: build-ovmf build-ovmf32 build-ovmf-cvm build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64 update-dbx
+.PHONY: build-ovmf build-ovmf32 build-ovmf-sev build-qemu-efi build-qemu-efi-aarch64 build-qemu-efi-riscv64 update-dbx
