@@ -7,3 +7,4 @@ Revert-UefiCpuPkg-Produce-EFI-memory-attributes-prot.patch
 UefiCpuPkg-MpInitLib-Fix-split-lock-violation-from-M.patch
 UefiCpuPkg-PiSmmCpuDxeSmm-Safe-handling-of-IDT-regis.patch
 OvmfPkg-Expand-EnrollDefaultKeys-with-Microsoft-2023.patch
+Enable_SCSI_IntelTdx_DXEFV.patch
