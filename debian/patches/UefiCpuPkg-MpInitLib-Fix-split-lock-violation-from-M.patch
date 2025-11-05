@@ -34,6 +34,8 @@ Signed-off-by: Aaron Young <aaron.young@oracle.com>
 (cherry picked from commit b0bc23d1f246dac977b639470a51bcef1bcd6e1d)
 Signed-off-by: Friedrich Weber <f.weber@proxmox.com>
 Signed-off-by: Thomas Lamprecht <t.lamprecht@proxmox.com>
+[FE: rebase for edk2-stable202505]
+Signed-off-by: Fiona Ebner <f.ebner@proxmox.com>
 ---
  UefiCpuPkg/Library/MpInitLib/MpEqu.inc | 15 ++++++++++++---
  UefiCpuPkg/Library/MpInitLib/MpLib.c   | 15 ++++++++++-----
@@ -41,7 +43,7 @@ Signed-off-by: Thomas Lamprecht <t.lamprecht@proxmox.com>
  3 files changed, 29 insertions(+), 10 deletions(-)
 
 diff --git a/UefiCpuPkg/Library/MpInitLib/MpEqu.inc b/UefiCpuPkg/Library/MpInitLib/MpEqu.inc
-index 317e627b58..ded603f8f8 100644
+index d8ba9ea124..7e4afbcaa5 100644
 --- a/UefiCpuPkg/Library/MpInitLib/MpEqu.inc
 +++ b/UefiCpuPkg/Library/MpInitLib/MpEqu.inc
 @@ -74,18 +74,18 @@ struc MP_CPU_EXCHANGE_INFO
@@ -65,8 +67,8 @@ index 317e627b58..ded603f8f8 100644
    .CpuMpData:                    CTYPE_UINTN 1
    .InitializeFloatingPointUnits: CTYPE_UINTN 1
    .ModeTransitionMemory:         CTYPE_UINT32 1
-@@ -99,5 +99,14 @@ struc MP_CPU_EXCHANGE_INFO
-   .ExtTopoAvail:                 CTYPE_BOOLEAN 1
+@@ -100,5 +100,14 @@ struc MP_CPU_EXCHANGE_INFO
+   .SevSnpKnownInitApicId:        CTYPE_BOOLEAN 1
  endstruc
  
 -MP_CPU_EXCHANGE_INFO_OFFSET equ (Flat32Start - RendezvousFunnelProcStart)
@@ -130,7 +132,7 @@ index fdcc21d794..ffaff1855f 100644
      // The AP reset stack is only used by SEV-ES guests. Do not allocate it
      // if SEV-ES is not enabled. An SEV-SNP guest is also considered
 diff --git a/UefiCpuPkg/Library/MpInitLib/MpLib.h b/UefiCpuPkg/Library/MpInitLib/MpLib.h
-index 145538b6ee..fc08ae2ce6 100644
+index a63bb81bef..b30dcb3828 100644
 --- a/UefiCpuPkg/Library/MpInitLib/MpLib.h
 +++ b/UefiCpuPkg/Library/MpInitLib/MpLib.h
 @@ -213,18 +213,23 @@ typedef struct {
