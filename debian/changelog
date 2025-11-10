@@ -1,3 +1,15 @@
+pve-edk2-firmware (4.2025.05-1) trixie; urgency=medium
+
+  * update edk2 to edk2-stable202505 release and refresh patches.
+
+  * use virt-firmware to enroll default keys.
+
+  * initialize the Secure Boot dbx in *.ms.fd with the latest revocations.
+
+  * partially fix #6985: pre-enroll Microsoft UEFI CA 2023 keys.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 10 Nov 2025 17:49:50 +0100
+
 pve-edk2-firmware (4.2025.02-4) trixie; urgency=medium
 
   * fix #6430: backport patch to fix split lock detection warnings.
