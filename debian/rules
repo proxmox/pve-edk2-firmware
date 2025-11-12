@@ -95,8 +95,10 @@ OVMF_TDX_INSTALL_DIR = debian/ovmf-tdx-install
 OVMF_TDX_BUILD_ROOT = Build/IntelTdx
 OVMF_TDX_BUILD_DIR = $(OVMF_TDX_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
 OVMF_TDX_SHELL = $(OVMF_TDX_BUILD_DIR)/X64/Shell.efi
+OVMF_TDX_ENROLL = $(OVMF_TDX_BUILD_DIR)/X64/EnrollDefaultKeys.efi
 OVMF_TDX_BINARIES = $(OVMF_TDX_SHELL)
 OVMF_TDX_IMAGES  := $(addprefix $(OVMF_TDX_INSTALL_DIR)/,OVMF_TDX_4M.fd)
+OVMF_TDX_PREENROLLED_IMAGES := $(addprefix $(OVMF_TDX_INSTALL_DIR)/,OVMF_TDX_4M.ms.fd)
 
 QEMU_EFI_BUILD_ROOT = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)
 QEMU_EFI_BUILD_DIR = $(QEMU_EFI_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
@@ -145,7 +147,7 @@ $(OVMF_SEV_BINARIES) $(OVMF_SEV_IMAGES): debian/setup-build-stamp
 	cp $(OVMF_SEV_BUILD_DIR)/FV/OVMF.fd \
 		$(OVMF_SEV_INSTALL_DIR)/OVMF_SEV_4M.fd
 
-build-ovmf-tdx: $(OVMF_TDX_BINARIES) $(OVMF_TDX_IMAGES)
+build-ovmf-tdx: $(OVMF_TDX_BINARIES) $(OVMF_TDX_IMAGES) $(OVMF_TDX_PREENROLLED_IMAGES)
 $(OVMF_TDX_BINARIES) $(OVMF_TDX_IMAGES): debian/setup-build-stamp
 	rm -rf $(OVMF_TDX_INSTALL_DIR)
 	mkdir $(OVMF_TDX_INSTALL_DIR)
@@ -214,6 +216,9 @@ enroll_snakeoil = virt-fw-vars --input $(1) --output $(2) \
 
 %/OVMF_VARS_4M.snakeoil.fd: %/OVMF_CODE_4M.fd %/OVMF_VARS_4M.fd debian/PkKek-1-snakeoil.pem $(OVMF_ENROLL) $(OVMF_SHELL)
 	$(call enroll_snakeoil,$(OVMF_INSTALL_DIR)/OVMF_VARS_4M.fd,$@)
+
+%/OVMF_TDX_4M.ms.fd: %/OVMF_TDX_4M.fd debian/PkKek-1-vendor.pem $(OVMF_TDX_ENROLL) $(OVMF_TDX_SHELL)
+	$(call enroll_vendor,$(OVMF_TDX_INSTALL_DIR)/OVMF_TDX_4M.fd,$@,amd64)
 
 BaseTools/Bin/GccLto/liblto-aarch64.a:	BaseTools/Bin/GccLto/liblto-aarch64.s
 	$($(EDK2_TOOLCHAIN)_AARCH64_PREFIX)gcc -c -fpic $< -o $@
