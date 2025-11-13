@@ -1,3 +1,9 @@
+pve-edk2-firmware (4.2025.05-2) trixie; urgency=medium
+
+  * add image for Intel TDX support.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 13 Nov 2025 11:17:01 +0100
+
 pve-edk2-firmware (4.2025.05-1) trixie; urgency=medium
 
   * update edk2 to edk2-stable202505 release and refresh patches.
