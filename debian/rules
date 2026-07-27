@@ -44,6 +44,7 @@ AAVMF_FLAGS  = $(COMMON_FLAGS)
 AAVMF_FLAGS += -DTPM2_ENABLE=TRUE
 AAVMF_FLAGS += -DTPM2_CONFIG_ENABLE=TRUE
 AAVMF_FLAGS += -DCAVIUM_ERRATUM_27456=TRUE
+AAVMF_SECBOOT_FLAGS = $(AAVMF_FLAGS) -DBUILD_SHELL=FALSE -DSECURE_BOOT_ENABLE=TRUE
 
 RISCV64_FLAGS = $(COMMON_FLAGS)
 
@@ -108,7 +109,7 @@ AAVMF_BUILD_DIR = $(AAVMF_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
 AAVMF_ENROLL    = $(AAVMF_BUILD_DIR)/AARCH64/EnrollDefaultKeys.efi
 AAVMF_SHELL     = $(AAVMF_BUILD_DIR)/AARCH64/Shell.efi
 AAVMF_BINARIES  = $(AAVMF_ENROLL) $(AAVMF_SHELL)
-AAVMF_IMAGES    = $(addprefix $(AAVMF_INSTALL_DIR)/,AAVMF_CODE.fd AAVMF_VARS.fd)
+AAVMF_IMAGES    = $(addprefix $(AAVMF_INSTALL_DIR)/,AAVMF_CODE.fd AAVMF_CODE.secboot.fd AAVMF_VARS.fd)
 AAVMF_PREENROLLED_VARS = $(addprefix $(AAVMF_INSTALL_DIR)/,AAVMF_VARS.ms.fd AAVMF_VARS.snakeoil.fd)
 
 RISCV64_BUILD_ROOT = Build/RiscVVirtQemu
@@ -201,7 +202,7 @@ enroll_snakeoil = virt-fw-vars --input $(1) --output $(2) \
                     --add-db OvmfEnrollDefaultKeys \
                              debian/PkKek-1-snakeoil.pem
 
-%/AAVMF_VARS.ms.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-vendor.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
+%/AAVMF_VARS.ms.fd: %/AAVMF_CODE.secboot.fd %/AAVMF_VARS.fd debian/PkKek-1-vendor.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
 	$(call enroll_vendor,$(AAVMF_INSTALL_DIR)/AAVMF_VARS.fd,$@,arm64)
 
 %/AAVMF_VARS.snakeoil.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-snakeoil.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
@@ -241,6 +242,15 @@ build-qemu-efi: debian/setup-build-stamp
 		$(QEMU_EFI_INSTALL_DIR)/$(FW_NAME)_CODE.fd
 	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_VARS.fd \
 		$(QEMU_EFI_INSTALL_DIR)/$(FW_NAME)_VARS.fd
+	rm -rf $(QEMU_EFI_BUILD_ROOT)
+	set -e; . ./edksetup.sh; \
+		build -a $(EDK2_HOST_ARCH) \
+			-t $(EDK2_TOOLCHAIN) \
+			-p ArmVirtPkg/ArmVirtQemu.dsc \
+			$(AAVMF_SECBOOT_FLAGS) -b $(BUILD_TYPE)
+	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd
+	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd \
+		$(QEMU_EFI_INSTALL_DIR)/$(FW_NAME)_CODE.secboot.fd
 
 build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_IMAGES) $(AAVMF_PREENROLLED_VARS)
 $(AAVMF_BINARIES) $(AAVMF_IMAGES): BaseTools/Bin/GccLto/liblto-aarch64.a
