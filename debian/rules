@@ -102,15 +102,14 @@ OVMF_TDX_PREENROLLED_IMAGES := $(addprefix $(OVMF_TDX_INSTALL_DIR)/,OVMF_TDX_4M.
 
 QEMU_EFI_BUILD_ROOT = Build/ArmVirtQemu-$(EDK2_HOST_ARCH)
 QEMU_EFI_BUILD_DIR = $(QEMU_EFI_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
+AAVMF_INSTALL_DIR = debian/aavmf-install
 AAVMF_BUILD_ROOT = Build/ArmVirtQemu-AARCH64
 AAVMF_BUILD_DIR = $(AAVMF_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
 AAVMF_ENROLL    = $(AAVMF_BUILD_DIR)/AARCH64/EnrollDefaultKeys.efi
 AAVMF_SHELL     = $(AAVMF_BUILD_DIR)/AARCH64/Shell.efi
 AAVMF_BINARIES  = $(AAVMF_ENROLL) $(AAVMF_SHELL)
-AAVMF_CODE      = $(AAVMF_BUILD_DIR)/FV/AAVMF_CODE.fd
-AAVMF_VARS      = $(AAVMF_BUILD_DIR)/FV/AAVMF_VARS.fd
-AAVMF_IMAGES    = $(AAVMF_CODE) $(AAVMF_VARS)
-AAVMF_PREENROLLED_VARS = $(addprefix $(AAVMF_BUILD_DIR)/FV/,AAVMF_VARS.ms.fd AAVMF_VARS.snakeoil.fd)
+AAVMF_IMAGES    = $(addprefix $(AAVMF_INSTALL_DIR)/,AAVMF_CODE.fd AAVMF_VARS.fd)
+AAVMF_PREENROLLED_VARS = $(addprefix $(AAVMF_INSTALL_DIR)/,AAVMF_VARS.ms.fd AAVMF_VARS.snakeoil.fd)
 
 RISCV64_BUILD_ROOT = Build/RiscVVirtQemu
 RISCV64_BUILD_DIR = $(RISCV64_BUILD_ROOT)/$(BUILD_TYPE)_$(EDK2_TOOLCHAIN)
@@ -203,10 +202,10 @@ enroll_snakeoil = virt-fw-vars --input $(1) --output $(2) \
                              debian/PkKek-1-snakeoil.pem
 
 %/AAVMF_VARS.ms.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-vendor.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
-	$(call enroll_vendor,$(AAVMF_VARS),$@,arm64)
+	$(call enroll_vendor,$(AAVMF_INSTALL_DIR)/AAVMF_VARS.fd,$@,arm64)
 
 %/AAVMF_VARS.snakeoil.fd: %/AAVMF_CODE.fd %/AAVMF_VARS.fd debian/PkKek-1-snakeoil.pem $(AAVMF_ENROLL) $(AAVMF_SHELL)
-	$(call enroll_snakeoil,$(AAVMF_VARS),$@)
+	$(call enroll_snakeoil,$(AAVMF_INSTALL_DIR)/AAVMF_VARS.fd,$@)
 
 %/OVMF_VARS.ms.fd: %/OVMF_CODE.secboot.fd %/OVMF_VARS.fd debian/PkKek-1-vendor.pem $(OVMF_ENROLL) $(OVMF_SHELL)
 	$(call enroll_vendor,$(OVMF_INSTALL_DIR)/OVMF_VARS.fd,$@,amd64)
@@ -227,23 +226,25 @@ BaseTools/Bin/GccLto/liblto-arm.a: BaseTools/Bin/GccLto/liblto-arm.s
 	$($(EDK2_TOOLCHAIN)_ARM_PREFIX)gcc -c -fpic $< -o $@
 
 build-qemu-efi: debian/setup-build-stamp
+	rm -rf $(QEMU_EFI_INSTALL_DIR)
+	mkdir $(QEMU_EFI_INSTALL_DIR)
 	set -e; . ./edksetup.sh; \
 		build -a $(EDK2_HOST_ARCH) \
 			-t $(EDK2_TOOLCHAIN) \
 			-p ArmVirtPkg/ArmVirtQemu.dsc \
 			$(AAVMF_FLAGS) -b $(BUILD_TYPE)
-	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd \
-		$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd
-	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_VARS.fd \
-		$(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd
 	# QEMU expects 64MiB CODE and VARS files on ARM/AARCH64 architectures
 	# Truncate the firmware files to the expected size
-	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_CODE.fd
-	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/$(FW_NAME)_VARS.fd
+	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd
+	truncate -s 64M $(QEMU_EFI_BUILD_DIR)/FV/QEMU_VARS.fd
+	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_EFI.fd \
+		$(QEMU_EFI_INSTALL_DIR)/$(FW_NAME)_CODE.fd
+	cp $(QEMU_EFI_BUILD_DIR)/FV/QEMU_VARS.fd \
+		$(QEMU_EFI_INSTALL_DIR)/$(FW_NAME)_VARS.fd
 
 build-qemu-efi-aarch64: $(AAVMF_BINARIES) $(AAVMF_IMAGES) $(AAVMF_PREENROLLED_VARS)
 $(AAVMF_BINARIES) $(AAVMF_IMAGES): BaseTools/Bin/GccLto/liblto-aarch64.a
-	$(MAKE) -f debian/rules build-qemu-efi EDK2_ARCH_DIR=AArch64 EDK2_HOST_ARCH=AARCH64 FW_NAME=AAVMF
+	$(MAKE) -f debian/rules build-qemu-efi EDK2_ARCH_DIR=AArch64 EDK2_HOST_ARCH=AARCH64 FW_NAME=AAVMF QEMU_EFI_INSTALL_DIR=$(AAVMF_INSTALL_DIR)
 
 build-qemu-efi-riscv64:  $(RISCV64_IMAGES)
 $(RISCV64_IMAGES): debian/setup-build-stamp
