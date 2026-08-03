@@ -1,3 +1,9 @@
+pve-edk2-firmware (4.2025.05-3) trixie; urgency=medium
+
+  * build secureboot-enabled image for aarch64.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 03 Aug 2026 22:56:07 +0200
+
 pve-edk2-firmware (4.2025.05-2) trixie; urgency=medium
 
   * add image for Intel TDX support.
